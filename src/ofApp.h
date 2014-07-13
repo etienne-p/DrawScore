@@ -25,6 +25,7 @@ class ofApp : public ofBaseApp{
         ofTexture videoTexture;
         int camWidth;
         int camHeight;
+        ofRectangle cropRect;
         float avr;
 		
 };
