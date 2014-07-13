@@ -27,6 +27,10 @@ class ScoreReader {
     
         // crop an image
         static unsigned char * crop(unsigned char * input, int sourceWidth, int sourceHeight, int x, int y, int width, int height);
+    
+        //
+        static unsigned char * oneToThreeChannels(unsigned char * input, int width, int height);
+
 
     
     

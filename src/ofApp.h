@@ -21,11 +21,12 @@ class ofApp : public ofBaseApp{
 		void gotMessage(ofMessage msg);
     
         ofVideoGrabber vidGrabber;
-        unsigned char * videoInverted;
         ofTexture videoTexture;
         int camWidth;
         int camHeight;
         ofRectangle cropRect;
         float avr;
+        float targetAvr;
+        unsigned char threshold;
 		
 };

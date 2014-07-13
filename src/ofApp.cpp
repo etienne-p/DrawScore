@@ -11,6 +11,9 @@ void ofApp::setup(){
     cropRect.width = 20;
     cropRect.height = camHeight;
     
+    targetAvr = 5;
+    threshold = 120;
+    
     //we can now get back a list of devices.
 	vector<ofVideoDevice> devices = vidGrabber.listDevices();
     
@@ -27,7 +30,6 @@ void ofApp::setup(){
 	vidGrabber.setDesiredFrameRate(60);
 	vidGrabber.initGrabber(camWidth,camHeight);
     
-	videoInverted 	= new unsigned char[camWidth*camHeight*3];
 	videoTexture.allocate(cropRect.width,cropRect.height, GL_RGB);
 	ofSetVerticalSync(true);
 }
@@ -44,21 +46,30 @@ void ofApp::update(){
         unsigned char * pixels = vidGrabber.getPixels();
         unsigned char * cropped = ScoreReader::crop(pixels, camWidth ,camHeight, cropRect.x, cropRect.y, cropRect.width, cropRect.height);
         unsigned char * gray = ScoreReader::grayScale(cropped, cropRect.width, cropRect.height);
-        unsigned char * thresholded = ScoreReader::threshold(gray, cropRect.width, cropRect.height, 120);
-		avr = ScoreReader::averagePixelValue(gray, cropRect.width, cropRect.height);
-        videoTexture.loadData(thresholded, cropRect.width, cropRect.height, GL_RGB);
+        unsigned char * thresholded = ScoreReader::threshold(gray, cropRect.width, cropRect.height, threshold);
+		avr = ScoreReader::averagePixelValue(thresholded, cropRect.width, cropRect.height);
+        unsigned char * expanded = ScoreReader::oneToThreeChannels(thresholded, cropRect.width, cropRect.height);
+        videoTexture.loadData(expanded, cropRect.width, cropRect.height, GL_RGB);
+       
+        // TODO: remove delete and observe memory leak.
         delete[] cropped;
         delete[] gray;
         delete[] thresholded;
+        delete[] expanded;
+        
+        // very naive threshold auto
+        threshold += avr > targetAvr ? 1 : -1;
 	}
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
 	ofSetHexColor(0xffffff);
-	vidGrabber.draw(20,20);
+	//vidGrabber.draw(20,20);
 	videoTexture.draw(20+camWidth,20,cropRect.width,cropRect.height);
     ofDrawBitmapString(ofToString(avr), 10, 10);
+    ofDrawBitmapString(ofToString(threshold), 10, 30);
+
 }
 
 //--------------------------------------------------------------
