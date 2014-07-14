@@ -16,15 +16,21 @@ public:
     float minGain;
     float setPoint;
     float output;
+    float minOutput;
+    float maxOutput;
     float gainAcceleration;
     float gain;
+    float error;
     
     Regulator(){
         minGain = 1;
         gainAcceleration = .2f;
         gain = 1;
         output = 0;
-        error = 0;
+        error = 1;
+        minOutput = 0;
+        maxOutput = 1;
+        setPoint = .5f;
     }
     
     float update(float feedback){
@@ -33,11 +39,11 @@ public:
         gain = max(gain, minGain);
         error = currentError;
         output += feedback > setPoint ? gain : -gain;
+        output = min(maxOutput, max(minOutput, output));
         return output;
     }
     
-private:
-    float error;
+    
 };
 
 #endif

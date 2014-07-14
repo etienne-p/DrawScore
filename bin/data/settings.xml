@@ -1,0 +1,20 @@
+<Widget>
+    <Kind>2</Kind>
+    <Name>REGULATION</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>SET_POINT</Name>
+    <Value>188.423645020</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>GAIN_ACCELERATION</Name>
+    <Value>0.104926117</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>TOLERANCE</Name>
+    <Value>29.556650162</Value>
+</Widget>

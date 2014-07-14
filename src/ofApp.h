@@ -1,13 +1,17 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ScoreReader.h"
+#include "ofxUI.h"
+#include "ImgProcess.h"
 #include "Regulator.h"
+
+using namespace ImgProcess;
 
 class ofApp : public ofBaseApp{
 
 	public:
-		void setup();
+    
+        void setup();
 		void update();
 		void draw();
 
@@ -21,12 +25,21 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
     
+        // UI related
+        void exit();
+        void guiEvent(ofxUIEventArgs &e);
+        ofxUICanvas *gui;
+        ofxUIToggle *toggle;
+    
+        // cam capture
         ofVideoGrabber vidGrabber;
         ofTexture videoTexture;
         int camWidth;
         int camHeight;
         ofRectangle cropRect;
         Regulator regulator;
-
-		
+        bool regulationActive;
+        float tolerance;
+    
+        
 };
