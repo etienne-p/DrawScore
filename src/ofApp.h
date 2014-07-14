@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "ScoreReader.h"
+#include "Regulator.h"
 
 class ofApp : public ofBaseApp{
 
@@ -25,8 +26,7 @@ class ofApp : public ofBaseApp{
         int camWidth;
         int camHeight;
         ofRectangle cropRect;
-        float avr;
-        float targetAvr;
-        unsigned char threshold;
+        Regulator regulator;
+
 		
 };

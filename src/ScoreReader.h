@@ -13,13 +13,10 @@ class ScoreReader {
     
     public:
     
-        // TODO: optimmize: keep one channel only once we're in grayscale, expand to 3 channel
-        // in the end, for rendering
-    
-        // convert color to grayscale using luminosity method, keeps 3 channels
+        // convert color to grayscale using luminosity method
         static unsigned char * grayScale(unsigned char * input, int width, int height);
     
-        // convert to binary, keeps 3 channels
+        // convert to binary
         static unsigned char * threshold(unsigned char * input, int width, int height, unsigned char threshold);
     
         // meant to be used on a thresholded image
