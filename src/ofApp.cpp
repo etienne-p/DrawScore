@@ -69,21 +69,20 @@ void ofApp::update(){
         unsigned char * cropped = crop(pixels, camWidth ,camHeight, cropRect.x, cropRect.y, cropRect.width, cropRect.height);
         // we switch to a 1 channel image
         unsigned char * gray = grayScale(cropped, cropRect.width, cropRect.height);
+
         unsigned char * thresholded = threshold(gray, cropRect.width, cropRect.height, regulator.output);
         // and back to a 3 channels image
         unsigned char * expanded = oneToThreeChannels(thresholded, cropRect.width, cropRect.height);
         videoTexture.loadData(expanded, cropRect.width, cropRect.height, GL_RGB);
+        
         // average pixel color is used as a feedback value to regulate threshold
         float avr = averagePixelValue(thresholded, cropRect.width, cropRect.height);
         
         if (regulationActive) {
             regulator.update(avr);
-            if (abs(regulator.error) < tolerance) {
-                regulationActive = false;
-                toggle->setValue(regulationActive);
-                ofLogNotice("Regulation complete.");
-            }
         }
+        
+        
        
         // TODO: remove delete and observe memory leak.
         delete[] cropped;
@@ -96,7 +95,7 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
 	ofSetHexColor(0xffffff);
-	//vidGrabber.draw(20,20);
+	///vidGrabber.draw(20,20);
 	videoTexture.draw(20+camWidth,20,cropRect.width,cropRect.height);
     ofDrawBitmapString("gain: " + ofToString(regulator.gain), 400, 10);
     ofDrawBitmapString("out: " + ofToString(regulator.output), 400, 30);
@@ -109,6 +108,7 @@ void ofApp::exit() {
 }
 
 void ofApp::guiEvent(ofxUIEventArgs &e) {
+    
     if(e.getName() == "REGULATION") {
         ofxUIToggle *toggle = e.getToggle();
         regulationActive = toggle->getValue();

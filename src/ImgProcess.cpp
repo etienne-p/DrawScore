@@ -22,6 +22,16 @@ namespace ImgProcess {
         return output;
     }
     
+    unsigned char * extractChannel(unsigned char * input, int width, int height, int channel){
+        int totalPixels = width * height;
+        unsigned char * output = new unsigned char[totalPixels];
+        for (int i = 0; i < totalPixels; i++){
+            output[i] = input[i * 3 + channel];
+        }
+        return output;
+    }
+
+    
     // 1 to 1 channel
     unsigned char * threshold(unsigned char * input, int width, int height, unsigned char threshold){
         int totalPixels = width * height;
@@ -64,7 +74,50 @@ namespace ImgProcess {
         }
         return  output;
     }
+    
+    unsigned char * blur(unsigned char * input, int width, int height){
+        
+        int totalPixels = width * height;
+        unsigned char * output = new unsigned char[totalPixels];
+        
+        for (int i = 0; i < totalPixels; i++){
+            
+            int x = i % width;
+            int y = i / width; // int division: floor
+            
+            int top = y > 0 ? 1 : 0;
+            int bottom = y < height - 1 ? 1 : 0;
+            int left = x > 0 ? 1 : 0;
+            int right = y < width - 1 ? 1 : 0;
+            
+            float neighbors = top * left + top + top * right + left + right + bottom * left + bottom + bottom * right;
+            
+            float sumNeighbors = \
 
+                (top && left ? input[i - width - 1] : 0) + //above left
+                (top  ? input[i - width] : 0) + //above center
+                (top && right ? input[i - width + 1] : 0)+ //above right
+            
+                (left ? input[i - 1] : 0) + // left
+                (right ? input[i + 1] : 0) + // right
+
+                (bottom && left ? input[i + width - 1] : 0) + // under left
+                (bottom ? input[i + width] : 0) + // under
+                (bottom && right ? input[i + width + 1] : 0); // under right
+           
+            output[i] = sumNeighbors / neighbors;
+        }
+        return  output;
+    }
+    
+    unsigned char * lowpass(unsigned char * input, unsigned char * previous, int width, int height, float alpha){
+        int totalPixels = width * height;
+        unsigned char * output = new unsigned char[totalPixels];
+        for (int i = 0; i < totalPixels; i++){
+            output[i] = previous[i] + alpha * (input[i] - previous[i]);            
+        }
+        return output;
+    }
 }
 
 

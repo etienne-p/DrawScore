@@ -12,6 +12,9 @@
 namespace ImgProcess {
 
     // convert color to grayscale using luminosity method
+    unsigned char * extractChannel(unsigned char * input, int width, int height, int channel);
+    
+    // convert color to grayscale using luminosity method
     unsigned char * grayScale(unsigned char * input, int width, int height);
     
     // convert to binary
@@ -23,8 +26,13 @@ namespace ImgProcess {
     // crop an image
     unsigned char * crop(unsigned char * input, int sourceWidth, int sourceHeight, int x, int y, int width, int height);
     
-    //
+    // convert from 1 to 3 channels image (ex: grayscale -> RGB)
     unsigned char * oneToThreeChannels(unsigned char * input, int width, int height);
+    
+    unsigned char * blur(unsigned char * input, int width, int height);
+    
+    unsigned char * lowpass(unsigned char * input, unsigned char * previous, int width, int height, float alpha);
+
 };
 
 #endif
