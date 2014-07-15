@@ -95,7 +95,7 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
 	ofSetHexColor(0xffffff);
-	///vidGrabber.draw(20,20);
+	vidGrabber.draw(20,20);
 	videoTexture.draw(20+camWidth,20,cropRect.width,cropRect.height);
     ofDrawBitmapString("gain: " + ofToString(regulator.gain), 400, 10);
     ofDrawBitmapString("out: " + ofToString(regulator.output), 400, 30);

@@ -1,17 +1,17 @@
 <Widget>
     <Kind>2</Kind>
     <Name>REGULATION</Name>
-    <Value>0</Value>
+    <Value>1</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>SET_POINT</Name>
-    <Value>188.423645020</Value>
+    <Value>194.704437256</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>GAIN_ACCELERATION</Name>
-    <Value>0.033990148</Value>
+    <Value>0.254187196</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
