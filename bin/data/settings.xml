@@ -6,15 +6,10 @@
 <Widget>
     <Kind>4</Kind>
     <Name>SET_POINT</Name>
-    <Value>194.704437256</Value>
+    <Value>3.960590839</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
-    <Name>GAIN_ACCELERATION</Name>
-    <Value>0.254187196</Value>
-</Widget>
-<Widget>
-    <Kind>4</Kind>
-    <Name>TOLERANCE</Name>
-    <Value>1.724137902</Value>
+    <Name>TRIGGER_THRESHOLD</Name>
+    <Value>0.546798050</Value>
 </Widget>

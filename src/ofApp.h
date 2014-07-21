@@ -7,6 +7,11 @@
 
 using namespace ImgProcess;
 
+typedef struct Trigger {
+	float position;
+	float weight;
+} Trigger;
+
 class ofApp : public ofBaseApp{
 
 	public:
@@ -29,7 +34,6 @@ class ofApp : public ofBaseApp{
         void exit();
         void guiEvent(ofxUIEventArgs &e);
         ofxUICanvas *gui;
-        ofxUIToggle *toggle;
     
         // cam capture
         ofVideoGrabber vidGrabber;
@@ -39,7 +43,9 @@ class ofApp : public ofBaseApp{
         ofRectangle cropRect;
         Regulator regulator;
         bool regulationActive;
-        float tolerance;
+        float * hSumValues;
     
-        
+        float triggerThreshold;
+    
+        vector<Trigger> triggers;
 };

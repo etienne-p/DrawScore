@@ -118,6 +118,16 @@ namespace ImgProcess {
         }
         return output;
     }
+    
+    void hSum(unsigned char * input, float * output, int width, int height){
+        float sum;
+        for (int i = 0; i < height; ++i){
+            sum = 0;
+            for (int j = 0; j < width; ++j) sum += input[i * width + j];
+            output[i] = sum / width;
+        }
+    }
+
 }
 
 

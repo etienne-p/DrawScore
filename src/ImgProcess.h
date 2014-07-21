@@ -31,7 +31,9 @@ namespace ImgProcess {
     
     unsigned char * blur(unsigned char * input, int width, int height);
     
-    unsigned char * lowpass(unsigned char * input, unsigned char * previous, int width, int height, float alpha);
+    void hSum(unsigned char * input, float * output, int width, int height);
+    
+    
 
 };
 

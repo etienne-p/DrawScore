@@ -13,18 +13,14 @@ class Regulator {
     
 public:
     
-    float minGain;
     float setPoint;
     float output;
     float minOutput;
     float maxOutput;
-    float gainAcceleration;
     float gain;
     float error;
     
     Regulator(){
-        minGain = 1;
-        gainAcceleration = .2f;
         gain = 1;
         output = 0;
         error = 1;
@@ -35,10 +31,8 @@ public:
     
     float update(float feedback){
         float currentError = setPoint - feedback;
-        gain *= 1 + (currentError > error ? gainAcceleration : -gainAcceleration);
-        gain = max(gain, minGain);
         error = currentError;
-        output += feedback > setPoint ? gain : -gain;
+        output += feedback > setPoint ? -gain : gain;
         output = min(maxOutput, max(minOutput, output));
         return output;
     }
