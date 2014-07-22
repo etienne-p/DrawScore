@@ -22,12 +22,17 @@ void ofApp::setup(){
     regulationActive = true;
     
     triggerThreshold = 0.5;
+    minTrigWidth = 2;
+    maxTrigWidth = 40;
     
     // setup gui
     gui = new ofxUICanvas();        //Creates a canvas at (0,0) using the default width
     gui->addToggle("REGULATION", regulationActive);
     gui->addSlider("SET_POINT", 0, 12, regulator.setPoint);
     gui->addSlider("TRIGGER_THRESHOLD", 0, 1, triggerThreshold);
+    gui->addSlider("MIN_TRIG_WIDTH", 0, 10, minTrigWidth);
+    gui->addSlider("MAX_TRIG_WIDTH", 0, 60, maxTrigWidth);
+
 
     gui->autoSizeToFitWidgets();
     gui->loadSettings("settings.xml");
@@ -83,23 +88,22 @@ void ofApp::update(){
         float avr = averagePixelValue(thresholded, cropRect.width, cropRect.height);
         
         // sum values horizontaly
-        hSum(thresholded, hSumValues, cropRect.width, cropRect.height);
+        yAxisHistogram(thresholded, hSumValues, cropRect.width, cropRect.height);
         
         // detect rectangles
         triggers.clear();
-        float trigger = 0.8;
         int triggerCount = 0;
-        int minTrigWidth = 2;
-        int maxTrigWidth = 40;
+        
         for(int i = 0, len = (int) cropRect.height; i < len; ++i){
+            
             float val = (255 - hSumValues[i]) / 255; // [0, 1]
             bool hit = true;
-            if (val > trigger){
-                triggerCount++;
-            } else {
-                hit = false;
-            }
-            
+            if (val > triggerThreshold) triggerCount++;
+            else hit = false;
+             
+            // for regulation, large triggers must be splitted in several triggers
+            // so we know that we are detcting TOO MUCH triggers, and should increase
+            // the threshold
             if (!hit || triggerCount > maxTrigWidth){
                 
                 if (triggerCount > minTrigWidth){
@@ -112,10 +116,8 @@ void ofApp::update(){
             }
         }
         
-        
         //
         if (regulationActive) regulator.update(triggers.size());
-        
         
         // TODO: remove delete and observe memory leak.
         delete[] cropped;
@@ -127,16 +129,20 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+    
+    // draw source & processed capture
 	ofSetHexColor(0xffffff);
 	vidGrabber.draw(20,20);
 	videoTexture.draw(20+camWidth,20,cropRect.width,cropRect.height);
+    
+    // print data
     ofDrawBitmapString("gain: " + ofToString(regulator.gain), 400, 10);
     ofDrawBitmapString("out: " + ofToString(regulator.output), 400, 30);
     ofDrawBitmapString("size: " + ofToString(triggers.size()), 400, 50);
     ofDrawBitmapString("output: " + ofToString(regulator.output), 400, 80);
     ofDrawBitmapString("setPoint: " + ofToString(regulator.setPoint), 400, 110);
     
-    
+    // draw histogram
     ofSetColor(255, 0, 0);
 	ofNoFill();
 	ofBeginShape();
@@ -145,12 +151,12 @@ void ofApp::draw(){
 	}
 	ofEndShape(false);
     
+    // draw triggers
     ofSetColor(0, 255, 0);
     ofFill();
     for(int i = 0, len = triggers.size(); i < len; ++i){
         ofCircle(600, 20 + cropRect.height * triggers[i].position, triggers[i].weight);
     }
-
 }
 
 void ofApp::exit() {
@@ -159,7 +165,7 @@ void ofApp::exit() {
 }
 
 void ofApp::guiEvent(ofxUIEventArgs &e) {
-    
+    // TODO: dry below code...
     if(e.getName() == "REGULATION") {
         ofxUIToggle *toggle = e.getToggle();
         regulationActive = toggle->getValue();
@@ -169,7 +175,14 @@ void ofApp::guiEvent(ofxUIEventArgs &e) {
     } else if (e.getName() == "TRIGGER_THRESHOLD"){
         ofxUISlider *slider = e.getSlider();
         triggerThreshold = slider->getScaledValue();
+    } else if (e.getName() == "MIN_TRIG_WIDTH"){
+        ofxUISlider *slider = e.getSlider();
+        minTrigWidth = slider->getScaledValue();
+    } else if (e.getName() == "MAX_TRIG_WIDTH"){
+        ofxUISlider *slider = e.getSlider();
+        maxTrigWidth = slider->getScaledValue();
     }
+   
 }
 
 //--------------------------------------------------------------

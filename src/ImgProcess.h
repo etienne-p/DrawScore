@@ -31,7 +31,7 @@ namespace ImgProcess {
     
     unsigned char * blur(unsigned char * input, int width, int height);
     
-    void hSum(unsigned char * input, float * output, int width, int height);
+    void yAxisHistogram(unsigned char * input, float * output, int width, int height);
     
     
 

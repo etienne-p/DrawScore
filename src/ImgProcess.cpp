@@ -119,7 +119,7 @@ namespace ImgProcess {
         return output;
     }
     
-    void hSum(unsigned char * input, float * output, int width, int height){
+    void yAxisHistogram(unsigned char * input, float * output, int width, int height){
         float sum;
         for (int i = 0; i < height; ++i){
             sum = 0;

@@ -46,6 +46,9 @@ class ofApp : public ofBaseApp{
         float * hSumValues;
     
         float triggerThreshold;
+        int minTrigWidth;
+        int maxTrigWidth;
+
     
         vector<Trigger> triggers;
 };
