@@ -48,7 +48,11 @@ class ofApp : public ofBaseApp{
         float triggerThreshold;
         int minTrigWidth;
         int maxTrigWidth;
+    
+        float variance;
 
     
         vector<Trigger> triggers;
+    
+        vector<float> memory;
 };

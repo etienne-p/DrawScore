@@ -116,6 +116,25 @@ void ofApp::update(){
             }
         }
         
+        //update memory if frame matches expected trigger count
+        if (triggers.size() > 3){
+        
+            // compute average space between triggers
+            float averageSpaceBetweenTriggers = 0;
+            float deltas[triggers.size() - 1];
+            for(int i = 1, len = triggers.size(); i < len; ++i){
+                deltas[i] = triggers[i].position - triggers[i - 1].position;
+                averageSpaceBetweenTriggers += deltas[i] / (len - 2);
+            }
+            
+            // are triggers approximately equidistant (variance)?
+            variance = 0;
+            for(int i = 0, len = triggers.size() - 1; i < len; ++i){
+                float d = deltas[i] - averageSpaceBetweenTriggers;
+                variance += d * d / (len * averageSpaceBetweenTriggers);
+            }
+        }
+         
         //
         if (regulationActive) regulator.update(triggers.size());
         
@@ -141,6 +160,8 @@ void ofApp::draw(){
     ofDrawBitmapString("size: " + ofToString(triggers.size()), 400, 50);
     ofDrawBitmapString("output: " + ofToString(regulator.output), 400, 80);
     ofDrawBitmapString("setPoint: " + ofToString(regulator.setPoint), 400, 110);
+    ofDrawBitmapString("variance: " + ofToString(variance), 400, 140);
+
     
     // draw histogram
     ofSetColor(255, 0, 0);
