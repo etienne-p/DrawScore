@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8FA03B741981C72B005C497E /* Reader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8FA03B731981C72B005C497E /* Reader.cpp */; };
 		BBAB23CB13894F3D00AA2426 /* GLUT.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = BBAB23BE13894E4700AA2426 /* GLUT.framework */; };
 		E4328149138ABC9F0047C5CB /* openFrameworksDebug.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E4328148138ABC890047C5CB /* openFrameworksDebug.a */; };
 		E45BE97B0E8CC7DD009D7055 /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E45BE9710E8CC7DD009D7055 /* AGL.framework */; };
@@ -109,6 +110,8 @@
 
 /* Begin PBXFileReference section */
 		8F54B8DB19735880007095FA /* Regulator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Regulator.h; sourceTree = "<group>"; };
+		8FA03B721981C712005C497E /* Reader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Reader.h; sourceTree = "<group>"; };
+		8FA03B731981C72B005C497E /* Reader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Reader.cpp; sourceTree = "<group>"; };
 		BBAB23BE13894E4700AA2426 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = ../../../libs/glut/lib/osx/GLUT.framework; sourceTree = "<group>"; };
 		E4328143138ABC890047C5CB /* openFrameworksLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = openFrameworksLib.xcodeproj; path = ../../../libs/openFrameworksCompiled/project/osx/openFrameworksLib.xcodeproj; sourceTree = SOURCE_ROOT; };
 		E45BE9710E8CC7DD009D7055 /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = /System/Library/Frameworks/AGL.framework; sourceTree = "<absolute>"; };
@@ -486,6 +489,8 @@
 				E4B69E1E0A3A1BDC003C02F2 /* ofApp.cpp */,
 				E4B69E1F0A3A1BDC003C02F2 /* ofApp.h */,
 				8F54B8DB19735880007095FA /* Regulator.h */,
+				8FA03B721981C712005C497E /* Reader.h */,
+				8FA03B731981C72B005C497E /* Reader.cpp */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;
@@ -608,6 +613,7 @@
 				E474C9BA197474E7002117C2 /* ofxUIImageButton.cpp in Sources */,
 				E474C9BB197474E7002117C2 /* ofxUIImageSampler.cpp in Sources */,
 				E474C9BC197474E7002117C2 /* ofxUIImageSlider.cpp in Sources */,
+				8FA03B741981C72B005C497E /* Reader.cpp in Sources */,
 				E474C9BD197474E7002117C2 /* ofxUIImageToggle.cpp in Sources */,
 				E474C9BE197474E7002117C2 /* ofxUILabel.cpp in Sources */,
 				E474C9BF197474E7002117C2 /* ofxUILabelButton.cpp in Sources */,

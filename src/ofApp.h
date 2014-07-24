@@ -1,16 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxUI.h"
-#include "ImgProcess.h"
-#include "Regulator.h"
-
-using namespace ImgProcess;
-
-typedef struct Trigger {
-	float position;
-	float weight;
-} Trigger;
+#include "Reader.h"
 
 class ofApp : public ofBaseApp{
 
@@ -29,30 +20,9 @@ class ofApp : public ofBaseApp{
 		void windowResized(int w, int h);
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
-    
-        // UI related
         void exit();
-        void guiEvent(ofxUIEventArgs &e);
-        ofxUICanvas *gui;
     
-        // cam capture
-        ofVideoGrabber vidGrabber;
-        ofTexture videoTexture;
-        int camWidth;
-        int camHeight;
-        ofRectangle cropRect;
-        Regulator regulator;
-        bool regulationActive;
-        float * hSumValues;
-    
-        float triggerThreshold;
-        int minTrigWidth;
-        int maxTrigWidth;
-    
-        float variance;
+        Reader * reader;
 
     
-        vector<Trigger> triggers;
-    
-        vector<float> memory;
 };
