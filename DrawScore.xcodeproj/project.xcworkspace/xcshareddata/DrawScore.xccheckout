@@ -14,6 +14,8 @@
 		<string>https://github.com/etienne-p/DrawScore.git</string>
 		<key>328085EA-02F6-4956-BFC4-28ED32B80BDF</key>
 		<string>https://github.com/rezaali/ofxUI.git</string>
+		<key>8ACC95A7-B46E-4441-AEC8-8D935A5D69CF</key>
+		<string>https://github.com/danomatika/ofxPd.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
 	<string>DrawScore.xcodeproj/project.xcworkspace</string>
@@ -23,6 +25,8 @@
 		<string>../..</string>
 		<key>328085EA-02F6-4956-BFC4-28ED32B80BDF</key>
 		<string>../../../../../addons/ofxUI</string>
+		<key>8ACC95A7-B46E-4441-AEC8-8D935A5D69CF</key>
+		<string>../../../../../addons/ofxPd</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/etienne-p/DrawScore.git</string>
@@ -39,6 +43,14 @@
 			<string>227C04FE-910B-4A6E-9870-3D4590B129D5</string>
 			<key>IDESourceControlWCCName</key>
 			<string>DrawScore</string>
+		</dict>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>8ACC95A7-B46E-4441-AEC8-8D935A5D69CF</string>
+			<key>IDESourceControlWCCName</key>
+			<string>ofxPd</string>
 		</dict>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>

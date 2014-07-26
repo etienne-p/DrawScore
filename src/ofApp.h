@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
-#include "Reader.h"
+#include "AppCore.h"
 
 class ofApp : public ofBaseApp{
     
@@ -22,13 +22,9 @@ public:
     void gotMessage(ofMessage msg);
     void exit();
     
+    void audioReceived(float * input, int bufferSize, int nChannels);
+    void audioRequested(float * output, int bufferSize, int nChannels);
     
-    // UI related
-    void guiEvent(ofxUIEventArgs &e);
-    ofxUICanvas *gui;
-    
-    
-    Reader * reader;
-    
+    AppCore core;
     
 };

@@ -2,105 +2,90 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+    // the number of libpd ticks per buffer,
+	// used to compute the audio buffer len: tpb * blocksize (always 64)
+    #ifdef TARGET_LINUX_ARM
+    // longer latency for Raspberry PI
+    int ticksPerBuffer = 32; // 32 * 64 = buffer len of 2048
+    int numInputs = 0; // no built in mic
+    #else
+    int ticksPerBuffer = 8; // 8 * 64 = buffer len of 512
+    int numInputs = 1;
+    #endif
     
-	reader = new Reader();
-    reader->setup(4);
+	// setup OF sound stream
+	ofSoundStreamSetup(2, numInputs, this, 44100, ofxPd::blockSize()*ticksPerBuffer, 3);
     
-    // setup gui
-    gui = new ofxUICanvas();
-    gui->addToggle("REGULATION", reader->regulationActive);
-    gui->addSlider("SET_POINT", 0, 12, reader->getNumLines());
-    gui->addSlider("TRIGGER_THRESHOLD", 0, 1, reader->triggerThreshold);
-    gui->addSlider("MIN_TRIG_WIDTH", 0, 10, reader->minTrigWidth);
-    gui->addSlider("MAX_TRIG_WIDTH", 0, 60, reader->maxTrigWidth);
-    gui->addSlider("MAX_VARIANCE", 0, 0.5, reader->maxVariance);
-    gui->autoSizeToFitWidgets();
-    gui->loadSettings("settings.xml");
-    ofAddListener(gui->newGUIEvent, this, &ofApp::guiEvent);
-    
-	ofSetVerticalSync(true);
-}
-
-void ofApp::guiEvent(ofxUIEventArgs &e) {
-    if(e.getName() == "REGULATION") {
-        ofxUIToggle *toggle = e.getToggle();
-        reader->regulationActive = toggle->getValue();
-    } else if (e.getName() == "SET_POINT"){
-        ofxUISlider *slider = e.getSlider();
-        reader->setNumLines(slider->getScaledValue());
-    } else if (e.getName() == "TRIGGER_THRESHOLD"){
-        ofxUISlider *slider = e.getSlider();
-        reader->triggerThreshold = slider->getScaledValue();
-    } else if (e.getName() == "MIN_TRIG_WIDTH"){
-        ofxUISlider *slider = e.getSlider();
-        reader->minTrigWidth = slider->getScaledValue();
-    } else if (e.getName() == "MAX_TRIG_WIDTH"){
-        ofxUISlider *slider = e.getSlider();
-        reader->maxTrigWidth = slider->getScaledValue();
-    } else if (e.getName() == "MAX_VARIANCE"){
-        ofxUISlider *slider = e.getSlider();
-        reader->maxVariance = slider->getScaledValue();
-    }
+	// setup the app core
+	core.setup(2, numInputs, 44100, ticksPerBuffer);
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    reader->update();
-	
+    core.update();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    reader->draw();
-    
+    core.draw();
 }
 
+//--------------------------------------------------------------
 void ofApp::exit() {
-    gui->saveSettings("settings.xml");
-    delete gui;
+    core.exit();
+}
+
+//--------------------------------------------------------------
+void ofApp::audioReceived(float * input, int bufferSize, int nChannels) {
+	core.audioReceived(input, bufferSize, nChannels);
+}
+
+//--------------------------------------------------------------
+void ofApp::audioRequested(float * output, int bufferSize, int nChannels) {
+	core.audioRequested(output, bufferSize, nChannels);
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y ){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h){
-
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::gotMessage(ofMessage msg){
-
+    
 }
 
 //--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){ 
-
+void ofApp::dragEvent(ofDragInfo dragInfo){
+    
 }

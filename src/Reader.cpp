@@ -56,9 +56,7 @@ void Reader::setNumLines(int num){
     regulator.error = numLines; //high to make sure we have a proper regulation phase
 }
 
-int Reader::getNumLines(){
-    return numLines;
-}
+int Reader::getNumLines(){ return numLines; }
 
 int Reader::update(){
     
