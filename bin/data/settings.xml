@@ -6,7 +6,7 @@
 <Widget>
     <Kind>4</Kind>
     <Name>SET_POINT</Name>
-    <Value>3.783251286</Value>
+    <Value>2.778325081</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
@@ -22,4 +22,9 @@
     <Kind>4</Kind>
     <Name>MAX_TRIG_WIDTH</Name>
     <Value>37.241378784</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>MAX_VARIANCE</Name>
+    <Value>0.150000006</Value>
 </Widget>

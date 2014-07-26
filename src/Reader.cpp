@@ -35,18 +35,6 @@ void Reader::setup(int num){
     
     maxVariance = 0.15;
     
-    // setup gui
-    gui = new ofxUICanvas();
-    gui->addToggle("REGULATION", regulationActive);
-    gui->addSlider("SET_POINT", 0, 12, regulator.setPoint);
-    gui->addSlider("TRIGGER_THRESHOLD", 0, 1, triggerThreshold);
-    gui->addSlider("MIN_TRIG_WIDTH", 0, 10, minTrigWidth);
-    gui->addSlider("MAX_TRIG_WIDTH", 0, 60, maxTrigWidth);
-    gui->addSlider("MAX_VARIANCE", 0, 0.5, maxVariance);
-    gui->autoSizeToFitWidgets();
-    gui->loadSettings("settings.xml");
-    ofAddListener(gui->newGUIEvent, this, &Reader::guiEvent);
-    
     // select device
 	vector<ofVideoDevice> devices = vidGrabber.listDevices();
     for(int i = 0; i < devices.size(); i++){
@@ -68,11 +56,15 @@ void Reader::setNumLines(int num){
     regulator.error = numLines; //high to make sure we have a proper regulation phase
 }
 
-void Reader::update(){
+int Reader::getNumLines(){
+    return numLines;
+}
+
+int Reader::update(){
     
     vidGrabber.update();
     
-	if (!vidGrabber.isFrameNew()) return;
+	if (!vidGrabber.isFrameNew()) return FRAME_NONE;
     
     // process image
     unsigned char * pixels = vidGrabber.getPixels();
@@ -117,7 +109,8 @@ void Reader::update(){
         }
     }
     
-    //update memory if frame matches expected trigger count
+    int returnCode = FRAME_INVALID;
+    
     if (triggers.size() == numLines){
         
         // and lines are regularly spaced
@@ -134,20 +127,17 @@ void Reader::update(){
             variance += d * d / (len * averageSpaceBetweenTriggers);
         }
         
-        if (variance < maxVariance) {
-            
-            
-        }
+        if (variance < maxVariance) returnCode = FRAME_VALID;
     }
     
-    //
     if (regulationActive) regulator.update(triggers.size());
     
-    // TODO: remove delete and observe memory leak.
     delete[] cropped;
     delete[] gray;
     delete[] thresholded;
     delete[] expanded;
+    
+    return returnCode;
 }
 
 // used for debugging, Reader won't have a UI in production
@@ -182,34 +172,6 @@ void Reader::draw(){
     }
 }
 
-void Reader::exit() {
-    gui->saveSettings("settings.xml");
-    delete gui;
-}
-
-void Reader::guiEvent(ofxUIEventArgs &e) {
-    if(e.getName() == "REGULATION") {
-        ofxUIToggle *toggle = e.getToggle();
-        regulationActive = toggle->getValue();
-    } else if (e.getName() == "SET_POINT"){
-        ofxUISlider *slider = e.getSlider();
-        regulator.setPoint = slider->getScaledValue();
-    } else if (e.getName() == "TRIGGER_THRESHOLD"){
-        ofxUISlider *slider = e.getSlider();
-        triggerThreshold = slider->getScaledValue();
-    } else if (e.getName() == "MIN_TRIG_WIDTH"){
-        ofxUISlider *slider = e.getSlider();
-        minTrigWidth = slider->getScaledValue();
-    } else if (e.getName() == "MAX_TRIG_WIDTH"){
-        ofxUISlider *slider = e.getSlider();
-        maxTrigWidth = slider->getScaledValue();
-    } else if (e.getName() == "MAX_VARIANCE"){
-        ofxUISlider *slider = e.getSlider();
-        maxVariance = slider->getScaledValue();
-    }
-}
-
 Reader::~Reader(){
-    if(gui != NULL) exit();
     delete[] hSumValues;
 }

@@ -23,42 +23,41 @@ typedef struct Trigger {
 class Reader {
     
 public:
+    
+    static const int FRAME_NONE = 0;
+    static const int FRAME_INVALID = 1;
+    static const int FRAME_VALID = 2;
+    
     void setup(int num);
-    void update();
-    void exit();
+    int update();
     void draw();
     void setNumLines(int num);
+    int getNumLines();
+
     ~Reader();
+    
+    float triggerThreshold;
+    int minTrigWidth;
+    int maxTrigWidth;
+    bool regulationActive;
+    float maxVariance;
+    vector<Trigger> triggers;
     
 private:
     
     int numLines;
     
-    // UI related
-    void guiEvent(ofxUIEventArgs &e);
-    ofxUICanvas *gui;
-    
     // cam capture
     ofVideoGrabber vidGrabber;
     ofTexture videoTexture;
+    ofRectangle cropRect;
     int camWidth;
     int camHeight;
-    ofRectangle cropRect;
     
     // image processing
     Regulator regulator;
-    bool regulationActive;
     float * hSumValues;
-    
-    float triggerThreshold;
-    int minTrigWidth;
-    int maxTrigWidth;
-    
     float variance;
-    float maxVariance;
-    vector<Trigger> triggers;
-    vector<float> memory;
-    
 };
 
 #endif

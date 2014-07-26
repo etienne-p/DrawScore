@@ -29,12 +29,7 @@ namespace ImgProcess {
     // convert from 1 to 3 channels image (ex: grayscale -> RGB)
     unsigned char * oneToThreeChannels(unsigned char * input, int width, int height);
     
-    unsigned char * blur(unsigned char * input, int width, int height);
-    
     void yAxisHistogram(unsigned char * input, float * output, int width, int height);
-    
-    
-
 };
 
 #endif
