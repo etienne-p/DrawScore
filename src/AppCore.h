@@ -41,6 +41,7 @@ public:
     void receiveMessage(const std::string& dest, const std::string& msg, const List& list);
     
     ofxPd pd;
+    vector<Patch> instances;
     
     // UI
     void guiEvent(ofxUIEventArgs &e);
@@ -48,6 +49,9 @@ public:
     
     // CV
     Reader * reader;
+    
+    bool touchDownHandler(ofTouchEventArgs &arg);
+    int tog;
 
 };
 

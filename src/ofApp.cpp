@@ -56,22 +56,28 @@ void ofApp::keyReleased(int key){
 }
 
 //--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y ){
-    
-}
-
-//--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
-    
+    touchArg.x = x;
+    touchArg.y = y;
+    ofNotifyEvent( ofEvents().touchMoved, touchArg );
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-    
+    touchArg.x = x;
+    touchArg.y = y;
+    ofNotifyEvent( ofEvents().touchDown, touchArg );
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
+    touchArg.x = x;
+    touchArg.y = y;
+    ofNotifyEvent( ofEvents().touchUp, touchArg );
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseMoved(int x, int y ){
     
 }
 

@@ -28,21 +28,31 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     gui->loadSettings("settings.xml");
     ofAddListener(gui->newGUIEvent, this, &AppCore::guiEvent);
     
-	ofSetVerticalSync(true);
+	if(!pd.init(numOutChannels, numInChannels, sampleRate, ticksPerBuffer)) OF_EXIT_APP(1);
     
-	if(!pd.init(numOutChannels, numInChannels, sampleRate, ticksPerBuffer)) {
-		OF_EXIT_APP(1);
-	}
-    
-	// add message receiver, disables polling (see processEvents)
+	// add message receiver
 	pd.addReceiver(*this);   // automatically receives from all subscribed sources
 	// add the data/pd folder to the search path
 	pd.addToSearchPath("pd");
 	// audio processing on
 	pd.start();
-    // open patch
-	Patch patch = pd.openPatch("pd/test.pd");
-	
+    
+    // open one patch per line / voice
+	for(int i = 0, len = reader->getNumLines(); i < len; ++i) {
+		Patch p = pd.openPatch("pd/toggle_tones.pd");
+		instances.push_back(p);
+	}
+    
+    // set midi note for each voice
+    for(int i = 0, len = instances.size(); i < len; ++i) {
+		pd.sendFloat(instances[i].dollarZeroStr()+"-instance", 48 + i * 3);
+	}
+    
+    // DEBUG testing pd interactivity
+    ofAddListener(ofEvents().touchDown, this, &AppCore::touchDownHandler, OF_EVENT_ORDER_BEFORE_APP);
+	tog = -1;
+    
+    ofSetVerticalSync(true);
 }
 
 //--------------------------------------------------------------
@@ -53,13 +63,27 @@ void AppCore::update() {
 //--------------------------------------------------------------
 void AppCore::draw() {
     reader->draw();
-
 }
 
 //--------------------------------------------------------------
 void AppCore::exit() {
+    
+    // close PD patches
+	for(int i = 0; i < instances.size(); ++i) pd.closePatch(instances[i]);
+	instances.clear();
+    
+    // save & destroy GUI
     gui->saveSettings("settings.xml");
     delete gui;
+}
+
+//--------------------------------------------------------------
+bool AppCore::touchDownHandler(ofTouchEventArgs &touch){
+    // DEBUG toggle volume on every voice
+    tog *= -1;
+	for(int i = 0; i < instances.size(); ++i) {
+		pd.sendSymbol(instances[i].dollarZeroStr()+"-instance", (tog > 0) ? "on" : "off");
+	}
 }
 
 //--------------------------------------------------------------

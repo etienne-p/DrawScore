@@ -26,5 +26,6 @@ public:
     void audioRequested(float * output, int bufferSize, int nChannels);
     
     AppCore core;
+    ofTouchEventArgs touchArg;
     
 };
