@@ -50,8 +50,12 @@ public:
     // CV
     Reader * reader;
     
-    bool touchDownHandler(ofTouchEventArgs &arg);
-    int tog;
+    vector<vector<int> > triggers;
+    
+    int toggleFrame;
+    
+    int numLines;
+    void setNumLines(int arg);
 
 };
 

@@ -33,6 +33,7 @@ public:
     void draw();
     void setNumLines(int num);
     int getNumLines();
+    void getTriggers(vector<int> &v);
 
     ~Reader();
     
@@ -41,11 +42,11 @@ public:
     int maxTrigWidth;
     bool regulationActive;
     float maxVariance;
-    vector<Trigger> triggers;
     
 private:
     
     int numLines;
+    vector<Trigger> triggers;
     
     // cam capture
     ofVideoGrabber vidGrabber;
@@ -58,6 +59,8 @@ private:
     Regulator regulator;
     float * hSumValues;
     float variance;
+    
+    float triggerWeightThreshold;
 };
 
 #endif

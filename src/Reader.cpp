@@ -35,6 +35,8 @@ void Reader::setup(int num){
     
     maxVariance = 0.15;
     
+    triggerWeightThreshold = 0;
+    
     // select device
 	vector<ofVideoDevice> devices = vidGrabber.listDevices();
     for(int i = 0; i < devices.size(); i++){
@@ -100,7 +102,7 @@ int Reader::update(){
             if (triggerCount > minTrigWidth){
                 Trigger trigger;
                 trigger.position = (i - triggerCount * 0.5) / len;
-                trigger.weight = triggerCount;
+                trigger.weight = triggerCount / len;
                 triggers.push_back(trigger);
             }
             triggerCount = 0;
@@ -138,6 +140,16 @@ int Reader::update(){
     return returnCode;
 }
 
+void Reader::getTriggers(vector<int> &v){
+    //hack, let's consider that top and bottom line are calibration lines
+    //triggerWeightThreshold = 1.5 * (0.5 * (triggers[0].weight + triggers[triggers.size() - 1].weight));
+    for(int i = 0, len = triggers.size() - 1; i < len; ++i){
+        //v[i] = triggers[i].weight > triggerWeightThreshold ? 1 : 0;
+        v[i] = ofRandom(0, 1) > .5 ? 1 : 0;
+
+    }
+}
+
 // used for debugging, Reader won't have a UI in production
 void Reader::draw(){
     
@@ -166,7 +178,7 @@ void Reader::draw(){
     ofSetColor(0, 255, 0);
     ofFill();
     for(int i = 0, len = triggers.size(); i < len; ++i){
-        ofCircle(cx + 255, cropRect.height * triggers[i].position, triggers[i].weight);
+        ofCircle(cx + 255, cropRect.height * triggers[i].position, triggers[i].weight * cropRect.height);
     }
 }
 

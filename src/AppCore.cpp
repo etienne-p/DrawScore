@@ -12,14 +12,19 @@
 void AppCore::setup(const int numOutChannels, const int numInChannels,
                     const int sampleRate, const int ticksPerBuffer) {
     
-	
+	numLines = 4;
+    toggleFrame = 1;
+    
+    // we store the 2 latest frames, reusing the same vectors
+    while (triggers.size() < 2) triggers.push_back(vector<int>());
+    
 	reader = new Reader();
-    reader->setup(4);
+    reader->setup(numLines);
     
     // setup gui
     gui = new ofxUICanvas();
     gui->addToggle("REGULATION", reader->regulationActive);
-    gui->addSlider("SET_POINT", 0, 12, reader->getNumLines());
+    gui->addSlider("SET_POINT", 0, 12, numLines);
     gui->addSlider("TRIGGER_THRESHOLD", 0, 1, reader->triggerThreshold);
     gui->addSlider("MIN_TRIG_WIDTH", 0, 10, reader->minTrigWidth);
     gui->addSlider("MAX_TRIG_WIDTH", 0, 60, reader->maxTrigWidth);
@@ -28,6 +33,7 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     gui->loadSettings("settings.xml");
     ofAddListener(gui->newGUIEvent, this, &AppCore::guiEvent);
     
+    // TODO: nicer exit
 	if(!pd.init(numOutChannels, numInChannels, sampleRate, ticksPerBuffer)) OF_EXIT_APP(1);
     
 	// add message receiver
@@ -45,19 +51,40 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     
     // set midi note for each voice
     for(int i = 0, len = instances.size(); i < len; ++i) {
-		pd.sendFloat(instances[i].dollarZeroStr()+"-instance", 48 + i * 3);
+        // send a list
+        pd.startMessage();
+        pd.addSymbol("note");
+        pd.addFloat(48 + i * 3);
+        pd.finishList(instances[i].dollarZeroStr()+"-instance");
 	}
     
-    // DEBUG testing pd interactivity
-    ofAddListener(ofEvents().touchDown, this, &AppCore::touchDownHandler, OF_EVENT_ORDER_BEFORE_APP);
-	tog = -1;
-    
     ofSetVerticalSync(true);
+    
+    setNumLines(numLines);
 }
 
 //--------------------------------------------------------------
 void AppCore::update() {
-	reader->update();
+    
+    // detect changes
+    int prev = toggleFrame > 0 ? 0 : 1;
+    int cur = toggleFrame > 0 ? 1 : 0;
+    
+    if (reader->update() == Reader::FRAME_VALID){
+        // retrieve triggers values
+        reader->getTriggers(triggers[cur]);
+    } else {
+        // if the frame is invalid, setting triggers at -1 lets us fade out the sound once,
+        // and remember the frame as invalid
+        for (int i = 0; i < numLines; ++i) triggers[cur][i] = -1;
+    }
+    
+    // update patches on change
+    for (int i = 0; i < numLines; ++i){
+        if (triggers[cur][i] != triggers[prev][i]){
+            pd.sendSymbol(instances[i].dollarZeroStr()+"-instance", triggers[cur][i] > 0 ? "on" : "off");
+        }
+    }
 }
 
 //--------------------------------------------------------------
@@ -78,22 +105,13 @@ void AppCore::exit() {
 }
 
 //--------------------------------------------------------------
-bool AppCore::touchDownHandler(ofTouchEventArgs &touch){
-    // DEBUG toggle volume on every voice
-    tog *= -1;
-	for(int i = 0; i < instances.size(); ++i) {
-		pd.sendSymbol(instances[i].dollarZeroStr()+"-instance", (tog > 0) ? "on" : "off");
-	}
-}
-
-//--------------------------------------------------------------
 void AppCore::guiEvent(ofxUIEventArgs &e) {
     if(e.getName() == "REGULATION") {
         ofxUIToggle *toggle = e.getToggle();
         reader->regulationActive = toggle->getValue();
     } else if (e.getName() == "SET_POINT"){
         ofxUISlider *slider = e.getSlider();
-        reader->setNumLines(slider->getScaledValue());
+        setNumLines(slider->getScaledValue());
     } else if (e.getName() == "TRIGGER_THRESHOLD"){
         ofxUISlider *slider = e.getSlider();
         reader->triggerThreshold = slider->getScaledValue();
@@ -107,6 +125,13 @@ void AppCore::guiEvent(ofxUIEventArgs &e) {
         ofxUISlider *slider = e.getSlider();
         reader->maxVariance = slider->getScaledValue();
     }
+}
+
+//--------------------------------------------------------------
+void AppCore::setNumLines(int arg){
+    numLines = arg;
+    reader->setNumLines(numLines);
+    for (int i = 0; i < 2; ++i) triggers[i].resize(numLines, 0);
 }
 
 //--------------------------------------------------------------
