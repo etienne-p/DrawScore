@@ -60,11 +60,11 @@ void Reader::setNumLines(int num){
 
 int Reader::getNumLines(){ return numLines; }
 
-int Reader::update(){
+FrameStatus Reader::update(){
     
     vidGrabber.update();
     
-	if (!vidGrabber.isFrameNew()) return FRAME_NONE;
+	if (!vidGrabber.isFrameNew()) return NONE;
     
     // process image
     unsigned char * pixels = vidGrabber.getPixels();
@@ -109,7 +109,7 @@ int Reader::update(){
         }
     }
     
-    int returnCode = FRAME_INVALID;
+    FrameStatus returnCode = INVALID;
     
     if (triggers.size() == numLines){
         
@@ -127,7 +127,7 @@ int Reader::update(){
             variance += d * d / (len * averageSpaceBetweenTriggers);
         }
         
-        if (variance < maxVariance) returnCode = FRAME_VALID;
+        if (variance < maxVariance) returnCode = VALID;
     }
     
     if (regulationActive) regulator.update(triggers.size());

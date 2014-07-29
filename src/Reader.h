@@ -20,16 +20,14 @@ typedef struct Trigger {
 	float weight;
 } Trigger;
 
+enum FrameStatus { NONE, VALID, INVALID};
+
 class Reader {
     
 public:
     
-    static const int FRAME_NONE = 0;
-    static const int FRAME_INVALID = 1;
-    static const int FRAME_VALID = 2;
-    
     void setup(int num);
-    int update();
+    FrameStatus update();
     void draw();
     void setNumLines(int num);
     int getNumLines();

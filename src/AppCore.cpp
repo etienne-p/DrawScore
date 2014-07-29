@@ -70,7 +70,7 @@ void AppCore::update() {
     int prev = toggleFrame > 0 ? 0 : 1;
     int cur = toggleFrame > 0 ? 1 : 0;
     
-    if (reader->update() == Reader::FRAME_VALID){
+    if (reader->update() == VALID){
         // retrieve triggers values
         reader->getTriggers(triggers[cur]);
     } else {
