@@ -102,7 +102,7 @@ int Reader::update(){
             if (triggerCount > minTrigWidth){
                 Trigger trigger;
                 trigger.position = (i - triggerCount * 0.5) / len;
-                trigger.weight = triggerCount / len;
+                trigger.weight = (float) triggerCount / len;
                 triggers.push_back(trigger);
             }
             triggerCount = 0;
@@ -142,11 +142,9 @@ int Reader::update(){
 
 void Reader::getTriggers(vector<int> &v){
     //hack, let's consider that top and bottom line are calibration lines
-    //triggerWeightThreshold = 1.5 * (0.5 * (triggers[0].weight + triggers[triggers.size() - 1].weight));
+    triggerWeightThreshold = 1.5 * (0.5 * (triggers.front().weight + triggers.back().weight));
     for(int i = 0, len = triggers.size() - 1; i < len; ++i){
-        //v[i] = triggers[i].weight > triggerWeightThreshold ? 1 : 0;
-        v[i] = ofRandom(0, 1) > .5 ? 1 : 0;
-
+        v[i] = triggers[i].weight > triggerWeightThreshold ? 1 : 0;
     }
 }
 
