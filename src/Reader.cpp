@@ -87,6 +87,7 @@ FrameStatus Reader::update(){
     // detect lines
     triggers.clear();
     int triggerCount = 0;
+    bool overflow = false;
     
     for(int i = 0, len = (int) cropRect.height; i < len; ++i){
         
@@ -96,9 +97,10 @@ FrameStatus Reader::update(){
         else hit = false;
         
         // for regulation, large triggers must be splitted in several triggers
-        // so we know that we are detcting TOO MUCH triggers, and should increase
-        // the threshold
-        if (!hit || triggerCount > maxTrigWidth){
+        // so we know that we are detecting TOO MUCH triggers, and should increase
+        // the threshold, overflow flag lets us know that the frame should be invalid
+        // in that case
+        if (!hit || (overflow = triggerCount > maxTrigWidth)){
             if (triggerCount > minTrigWidth){
                 Trigger trigger;
                 trigger.position = (i - triggerCount * 0.5) / len;
@@ -111,7 +113,7 @@ FrameStatus Reader::update(){
     
     FrameStatus returnCode = INVALID;
     
-    if (triggers.size() == numLines){
+    if (triggers.size() == numLines && !overflow){
         
         // and lines are regularly spaced
         float averageSpaceBetweenTriggers = 0;

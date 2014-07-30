@@ -36,11 +36,8 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     // TODO: nicer exit
 	if(!pd.init(numOutChannels, numInChannels, sampleRate, ticksPerBuffer)) OF_EXIT_APP(1);
     
-	// add message receiver
 	pd.addReceiver(*this);   // automatically receives from all subscribed sources
-	// add the data/pd folder to the search path
 	pd.addToSearchPath("pd");
-	// audio processing on
 	pd.start();
     
     // open one patch per line / voice
@@ -50,16 +47,17 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
 	}
     
     // set midi note for each voice
+    vector<int> notes;
+    getMidiNotes(notes, MAJOR, instances.size());
+    
     for(int i = 0, len = instances.size(); i < len; ++i) {
-        // send a list
         pd.startMessage();
         pd.addSymbol("note");
-        pd.addFloat(48 + i * 3);
+        pd.addFloat(notes[i]);
         pd.finishList(instances[i].dollarZeroStr()+"-instance");
 	}
     
     ofSetVerticalSync(true);
-    
     setNumLines(numLines);
 }
 
@@ -67,17 +65,12 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
 void AppCore::update() {
     
     // detect changes
+    toggleFrame *= -1;
     int prev = toggleFrame > 0 ? 0 : 1;
     int cur = toggleFrame > 0 ? 1 : 0;
     
-    if (reader->update() == VALID){
-        // retrieve triggers values
-        reader->getTriggers(triggers[cur]);
-    } else {
-        // if the frame is invalid, setting triggers at -1 lets us fade out the sound once,
-        // and remember the frame as invalid
-        for (int i = 0; i < numLines; ++i) triggers[cur][i] = -1;
-    }
+    if (reader->update() == VALID) reader->getTriggers(triggers[cur]);
+    else for (int i = 0; i < numLines; ++i) triggers[cur][i] = -1;
     
     // update patches on change
     for (int i = 0; i < numLines; ++i){

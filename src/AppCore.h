@@ -12,8 +12,9 @@
 #include "ofMain.h"
 #include "ofxPd.h"
 #include "Reader.h"
+#include "MusicUtils.h"
 
-// a namespace for the Pd types
+using namespace MusicUtils;
 using namespace pd;
 
 class AppCore : public PdReceiver {
