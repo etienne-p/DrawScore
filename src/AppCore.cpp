@@ -40,22 +40,7 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
 	pd.addToSearchPath("pd");
 	pd.start();
     
-    // open one patch per line / voice
-	for(int i = 0, len = reader->getNumLines(); i < len; ++i) {
-		Patch p = pd.openPatch("pd/toggle_tones.pd");
-		instances.push_back(p);
-	}
     
-    // set midi note for each voice
-    vector<int> notes;
-    getMidiNotes(notes, MAJOR, instances.size());
-    
-    for(int i = 0, len = instances.size(); i < len; ++i) {
-        pd.startMessage();
-        pd.addSymbol("note");
-        pd.addFloat(notes[i]);
-        pd.finishList(instances[i].dollarZeroStr()+"-instance");
-	}
     
     ofSetVerticalSync(true);
     setNumLines(numLines);
@@ -125,6 +110,30 @@ void AppCore::setNumLines(int arg){
     numLines = arg;
     reader->setNumLines(numLines);
     for (int i = 0; i < 2; ++i) triggers[i].resize(numLines, 0);
+    
+    if (numLines < instances.size()){
+        while (instances.size()  > numLines){
+            pd.closePatch(instances.back());
+            instances.pop_back();
+        }
+    } else {
+        // open one patch per line / voice
+        for(int i = instances.size(); i < numLines; ++i) {
+            Patch p = pd.openPatch("pd/toggle_tones.pd");
+            instances.push_back(p);
+        }
+    }
+    
+    // set midi note for each voice
+    vector<int> notes;
+    getMidiNotes(notes, MAJOR, instances.size());
+    
+    for(int i = 0, len = instances.size(); i < len; ++i) {
+        pd.startMessage();
+        pd.addSymbol("note");
+        pd.addFloat(notes[i]);
+        pd.finishList(instances[i].dollarZeroStr()+"-instance");
+	}
 }
 
 //--------------------------------------------------------------
