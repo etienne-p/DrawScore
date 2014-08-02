@@ -30,14 +30,11 @@ public:
     }
     
     float update(float feedback){
-        float currentError = setPoint - feedback;
-        error = currentError;
+        error = setPoint - feedback;
         output += feedback > setPoint ? -gain : gain;
         output = min(maxOutput, max(minOutput, output));
         return output;
     }
-    
-    
 };
 
 #endif

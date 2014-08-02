@@ -12,7 +12,7 @@
 void AppCore::setup(const int numOutChannels, const int numInChannels,
                     const int sampleRate, const int ticksPerBuffer) {
     
-	numLines = 4;
+	numLines = 7;
     toggleFrame = 1;
     
     // we store the 2 latest frames, reusing the same vectors
@@ -26,9 +26,8 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     gui->addToggle("REGULATION", reader->regulationActive);
     gui->addSlider("SET_POINT", 0, 12, numLines);
     gui->addSlider("TRIGGER_THRESHOLD", 0, 1, reader->triggerThreshold);
-    gui->addSlider("MIN_TRIG_WIDTH", 0, 10, reader->minTrigWidth);
-    gui->addSlider("MAX_TRIG_WIDTH", 0, 60, reader->maxTrigWidth);
     gui->addSlider("MAX_VARIANCE", 0, 0.5, reader->maxVariance);
+    gui->addSlider("MAX_AVERAGE_WEIGHT", 0, 0.2, reader->maxAverageWeight);
     gui->autoSizeToFitWidgets();
     gui->loadSettings("settings.xml");
     ofAddListener(gui->newGUIEvent, this, &AppCore::guiEvent);
@@ -39,8 +38,6 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
 	pd.addReceiver(*this);   // automatically receives from all subscribed sources
 	pd.addToSearchPath("pd");
 	pd.start();
-    
-    
     
     ofSetVerticalSync(true);
     setNumLines(numLines);
@@ -93,24 +90,22 @@ void AppCore::guiEvent(ofxUIEventArgs &e) {
     } else if (e.getName() == "TRIGGER_THRESHOLD"){
         ofxUISlider *slider = e.getSlider();
         reader->triggerThreshold = slider->getScaledValue();
-    } else if (e.getName() == "MIN_TRIG_WIDTH"){
-        ofxUISlider *slider = e.getSlider();
-        reader->minTrigWidth = slider->getScaledValue();
-    } else if (e.getName() == "MAX_TRIG_WIDTH"){
-        ofxUISlider *slider = e.getSlider();
-        reader->maxTrigWidth = slider->getScaledValue();
     } else if (e.getName() == "MAX_VARIANCE"){
         ofxUISlider *slider = e.getSlider();
         reader->maxVariance = slider->getScaledValue();
+    } else if (e.getName() == "MAX_AVERAGE_WEIGHT"){
+        ofxUISlider *slider = e.getSlider();
+        reader->maxAverageWeight = slider->getScaledValue();
     }
 }
 
 //--------------------------------------------------------------
 void AppCore::setNumLines(int arg){
     numLines = arg;
-    reader->setNumLines(numLines);
+    reader->numLines = numLines;
     for (int i = 0; i < 2; ++i) triggers[i].resize(numLines, 0);
     
+    // create / delete voices as needed
     if (numLines < instances.size()){
         while (instances.size()  > numLines){
             pd.closePatch(instances.back());
@@ -119,7 +114,7 @@ void AppCore::setNumLines(int arg){
     } else {
         // open one patch per line / voice
         for(int i = instances.size(); i < numLines; ++i) {
-            Patch p = pd.openPatch("pd/toggle_tones.pd");
+            Patch p = pd.openPatch("pd/toggle_tone.pd");
             instances.push_back(p);
         }
     }

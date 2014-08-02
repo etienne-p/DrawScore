@@ -10,15 +10,17 @@
 
 void Reader::setup(int num){
     
-    setNumLines(num);
+    numLines = num;
+    
+    error = "default";
     
     camWidth = 320;	// try to grab at this size.
 	camHeight = 240;
     
     // init zone of interest
-    cropRect.x = (camWidth - 20) / 2;
+    cropRect.x = (camWidth - 12) / 2;
     cropRect.y = 0;
-    cropRect.width = 20;
+    cropRect.width = 12;
     cropRect.height = camHeight;
     hSumValues = new float[(int) cropRect.height];
     
@@ -27,13 +29,15 @@ void Reader::setup(int num){
     regulator.minOutput = 0;
     regulator.maxOutput = 255;
     regulator.gain = 1;
+    regulator.setPoint = 1;
+    regulator.error = 0;
     regulationActive = true;
     
     triggerThreshold = 0.5;
-    minTrigWidth = 2;
-    maxTrigWidth = 40;
     
-    maxVariance = 0.15;
+    maxVariance = 0.05;
+    
+    maxAverageWeight = 0.05;
     
     triggerWeightThreshold = 0;
     
@@ -52,74 +56,89 @@ void Reader::setup(int num){
     videoTexture.allocate(cropRect.width,cropRect.height, GL_RGB);
 }
 
-void Reader::setNumLines(int num){
-    numLines = num;
-    regulator.setPoint = numLines - 0.1;
-    regulator.error = numLines; //high to make sure we have a proper regulation phase
-}
-
-int Reader::getNumLines(){ return numLines; }
-
 FrameStatus Reader::update(){
     
     vidGrabber.update();
     
 	if (!vidGrabber.isFrameNew()) return NONE;
     
-    // process image
+    // we assume the frame is valid
+    // we will perform a serie of test on it,
+    // it will be interrupted in case of failure
+    FrameStatus returnValue = VALID;
+    error = "no error";
+    
+    float regulationValue = 1;
+    
+    // image processing
     unsigned char * pixels = vidGrabber.getPixels();
-    
     unsigned char * cropped = crop(pixels, camWidth ,camHeight, cropRect.x, cropRect.y, cropRect.width, cropRect.height);
-    
-    // we switch to a 1 channel image
-    unsigned char * gray = grayScale(cropped, cropRect.width, cropRect.height);
-    
+    unsigned char * gray = grayScale(cropped, cropRect.width, cropRect.height); // we switch to a 1 channel image
     unsigned char * thresholded = threshold(gray, cropRect.width, cropRect.height, regulator.output);
-    
-    // and back to a 3 channels image
-    unsigned char * expanded = oneToThreeChannels(thresholded, cropRect.width, cropRect.height);
-    
+    unsigned char * expanded = oneToThreeChannels(thresholded, cropRect.width, cropRect.height); // and back to a 3 channels image
     videoTexture.loadData(expanded, cropRect.width, cropRect.height, GL_RGB);
+    yAxisHistogram(thresholded, hSumValues, cropRect.width, cropRect.height); // sum values horizontaly
     
-    // sum values horizontaly
-    yAxisHistogram(thresholded, hSumValues, cropRect.width, cropRect.height);
-    
-    // detect lines
-    triggers.clear();
-    int triggerCount = 0;
-    bool overflow = false;
+    vector<float> thresholdCrossing; // detect threshold crossings
+    float prevVal = 0; // so we store a crossing in case of black border
     
     for(int i = 0, len = (int) cropRect.height; i < len; ++i){
         
         float val = (255 - hSumValues[i]) / 255; // [0, 1]
-        bool hit = true;
-        if (val > triggerThreshold) triggerCount++;
-        else hit = false;
         
-        // for regulation, large triggers must be splitted in several triggers
-        // so we know that we are detecting TOO MUCH triggers, and should increase
-        // the threshold, overflow flag lets us know that the frame should be invalid
-        // in that case
-        if (!hit || (overflow = triggerCount > maxTrigWidth)){
-            if (triggerCount > minTrigWidth){
-                Trigger trigger;
-                trigger.position = (i - triggerCount * 0.5) / len;
-                trigger.weight = (float) triggerCount / len;
-                triggers.push_back(trigger);
-            }
-            triggerCount = 0;
+        if ((prevVal <= triggerThreshold && val > triggerThreshold) ||
+            (prevVal >= triggerThreshold && val < triggerThreshold)) {
+            thresholdCrossing.push_back((float) i / (len - 1));
+        }
+        prevVal = val;
+    }
+    
+    if (prevVal > triggerThreshold) thresholdCrossing.push_back(1); // last crossing
+    
+    // detect extremely rare cases (val == threshold)
+    if (thresholdCrossing.size() % 2 != 0) {
+        error = "[INVALID] odd number of crossings: " + ofToString(thresholdCrossing.size()) ;
+        returnValue = INVALID;
+    }
+    
+    // extract triggers
+    if (returnValue == VALID){
+        
+        triggers.clear();
+        averageWeight = 0;
+        
+        for(int i = 0, len = thresholdCrossing.size(); i < len; i = i + 2){
+            
+            float d = thresholdCrossing[i + 1] - thresholdCrossing[i];
+            
+            Trigger trigger;
+            trigger.position = thresholdCrossing[i] + d * 0.5;
+            trigger.weight = d;
+            averageWeight += d;
+            triggers.push_back(trigger);
+        }
+        
+        averageWeight /= triggers.size();
+        
+        if (averageWeight > maxAverageWeight) { // check average weight
+            error = "[INVALID] above max average weight";
+            regulationValue += 0.1;
+            returnValue = INVALID;
+        } else if (triggers.size() != numLines) { // verify the number of lines
+            error = "[INVALID] wrong number of lines";
+            regulationValue += triggers.size() > numLines ? 0.1 : -0.1;
+            returnValue = INVALID;
         }
     }
     
-    FrameStatus returnCode = INVALID;
-    
-    if (triggers.size() == numLines && !overflow){
+    // check line space
+    if (returnValue == VALID){
         
-        // and lines are regularly spaced
+        // control line spacing with variance
         float averageSpaceBetweenTriggers = 0;
         float deltas[triggers.size() - 1];
-        for(int i = 1, len = triggers.size(); i < len; ++i){
-            deltas[i] = triggers[i].position - triggers[i - 1].position;
+        for(int i = 0, len = triggers.size() - 1; i < len; ++i){
+            deltas[i] = triggers[i + 1].position - triggers[i].position;
             averageSpaceBetweenTriggers += deltas[i] / (len - 2);
         }
         
@@ -129,17 +148,21 @@ FrameStatus Reader::update(){
             variance += d * d / (len * averageSpaceBetweenTriggers);
         }
         
-        if (variance < maxVariance) returnCode = VALID;
+        if (variance > maxVariance) {
+            error = "[INVALID] high variance";
+            returnValue = INVALID;
+        }
+        
     }
-    
-    if (regulationActive) regulator.update(triggers.size());
+
+    if (regulationActive && regulationValue != 1) regulator.update(regulationValue);
     
     delete[] cropped;
     delete[] gray;
     delete[] thresholded;
     delete[] expanded;
     
-    return returnCode;
+    return returnValue;
 }
 
 void Reader::getTriggers(vector<int> &v){
@@ -157,16 +180,7 @@ void Reader::draw(){
 	ofSetColor(255, 255, 255);
 	int cx = 250;
 	videoTexture.draw(cx,0,cropRect.width,cropRect.height);
-    
-    // print data
-    ofSetColor(255, 0, 0);
-    cx += cropRect.width;
-    ofDrawBitmapString("size: " + ofToString(triggers.size()), cx, 10);
-    ofDrawBitmapString("output: " + ofToString(regulator.output), cx, 30);
-    ofDrawBitmapString("setPoint: " + ofToString(regulator.setPoint), cx, 50);
-    ofDrawBitmapString("variance: " + ofToString(variance), cx, 70);
-    
-    // draw histogram
+        // draw histogram
     ofNoFill();
 	ofBeginShape();
     for(int i = 0, len = (int) cropRect.height; i < len; ++i){
@@ -180,6 +194,16 @@ void Reader::draw(){
     for(int i = 0, len = triggers.size(); i < len; ++i){
         ofCircle(cx + 255, cropRect.height * triggers[i].position, triggers[i].weight * cropRect.height);
     }
+    
+    // print data
+    ofSetColor(255, 0, 0);
+    cx += cropRect.width;
+    ofDrawBitmapString("size: " + ofToString(triggers.size()), cx, 10);
+    ofDrawBitmapString("output: " + ofToString(regulator.output), cx, 30);
+    ofDrawBitmapString("setPoint: " + ofToString(regulator.setPoint), cx, 50);
+    ofDrawBitmapString("variance: " + ofToString(variance), cx, 70);
+    ofDrawBitmapString("average weight: " + ofToString(averageWeight), cx, 90);
+    ofDrawBitmapString("error: " + error, cx, 110);
 }
 
 Reader::~Reader(){

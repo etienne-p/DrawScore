@@ -29,22 +29,21 @@ public:
     void setup(int num);
     FrameStatus update();
     void draw();
-    void setNumLines(int num);
-    int getNumLines();
     void getTriggers(vector<int> &v);
 
     ~Reader();
     
+    int numLines;
     float triggerThreshold;
-    int minTrigWidth;
-    int maxTrigWidth;
     bool regulationActive;
     float maxVariance;
+    float maxAverageWeight;
     
 private:
     
-    int numLines;
     vector<Trigger> triggers;
+    
+    string error;
     
     // cam capture
     ofVideoGrabber vidGrabber;
@@ -57,7 +56,8 @@ private:
     Regulator regulator;
     float * hSumValues;
     float variance;
-    
+    float averageWeight;
+
     float triggerWeightThreshold;
 };
 
