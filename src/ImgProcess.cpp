@@ -42,6 +42,16 @@ namespace ImgProcess {
         return output;
     }
     
+    // 1 to 1 channel
+    unsigned char * offset(unsigned char * input, int width, int height, unsigned char offset){
+        int totalPixels = width * height;
+        unsigned char * output = new unsigned char[totalPixels];
+        for (int i = 0; i < totalPixels; i++){
+            output[i] = max(min(input[i] + offset, 255), 0);
+        }
+        return output;
+    }
+
     // in 1 channel
     float averagePixelValue(unsigned char * input, int width, int height){
         int totalPixels = width * height;

@@ -79,6 +79,12 @@ FrameStatus Reader::update(){
     videoTexture.loadData(expanded, cropRect.width, cropRect.height, GL_RGB);
     yAxisHistogram(thresholded, hSumValues, cropRect.width, cropRect.height); // sum values horizontaly
     
+    // clean
+    delete[] cropped;
+    delete[] gray;
+    delete[] thresholded;
+    delete[] expanded;
+    
     vector<float> thresholdCrossing; // detect threshold crossings
     float prevVal = 0; // so we store a crossing in case of black border
     
@@ -95,9 +101,10 @@ FrameStatus Reader::update(){
     
     if (prevVal > triggerThreshold) thresholdCrossing.push_back(1); // last crossing
     
-    // detect extremely rare cases (val == threshold)
+    //
     if (thresholdCrossing.size() % 2 != 0) {
         error = "[INVALID] odd number of crossings: " + ofToString(thresholdCrossing.size()) ;
+        regulationValue += thresholdCrossing.size() > numLines * 2 ? 0.1 : -0.1;
         returnValue = INVALID;
     }
     
@@ -157,18 +164,13 @@ FrameStatus Reader::update(){
 
     if (regulationActive && regulationValue != 1) regulator.update(regulationValue);
     
-    delete[] cropped;
-    delete[] gray;
-    delete[] thresholded;
-    delete[] expanded;
-    
     return returnValue;
 }
 
 void Reader::getTriggers(vector<int> &v){
     //hack, let's consider that top and bottom line are calibration lines
     triggerWeightThreshold = 1.5 * (0.5 * (triggers.front().weight + triggers.back().weight));
-    for(int i = 0, len = triggers.size() - 1; i < len; ++i){
+    for(int i = 0, len = triggers.size(); i < len; ++i){
         v[i] = triggers[i].weight > triggerWeightThreshold ? 1 : 0;
     }
 }

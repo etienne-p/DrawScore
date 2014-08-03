@@ -24,7 +24,6 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     // setup gui
     gui = new ofxUICanvas();
     gui->addToggle("REGULATION", reader->regulationActive);
-    gui->addSlider("SET_POINT", 0, 12, numLines);
     gui->addSlider("TRIGGER_THRESHOLD", 0, 1, reader->triggerThreshold);
     gui->addSlider("MAX_VARIANCE", 0, 0.5, reader->maxVariance);
     gui->addSlider("MAX_AVERAGE_WEIGHT", 0, 0.2, reader->maxAverageWeight);
@@ -36,7 +35,7 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
 	if(!pd.init(numOutChannels, numInChannels, sampleRate, ticksPerBuffer)) OF_EXIT_APP(1);
     
 	pd.addReceiver(*this);   // automatically receives from all subscribed sources
-	pd.addToSearchPath("pd");
+    pd.addToSearchPath("pd");
 	pd.start();
     
     ofSetVerticalSync(true);
@@ -84,9 +83,6 @@ void AppCore::guiEvent(ofxUIEventArgs &e) {
     if(e.getName() == "REGULATION") {
         ofxUIToggle *toggle = e.getToggle();
         reader->regulationActive = toggle->getValue();
-    } else if (e.getName() == "SET_POINT"){
-        ofxUISlider *slider = e.getSlider();
-        setNumLines(slider->getScaledValue());
     } else if (e.getName() == "TRIGGER_THRESHOLD"){
         ofxUISlider *slider = e.getSlider();
         reader->triggerThreshold = slider->getScaledValue();
@@ -101,6 +97,7 @@ void AppCore::guiEvent(ofxUIEventArgs &e) {
 
 //--------------------------------------------------------------
 void AppCore::setNumLines(int arg){
+    
     numLines = arg;
     reader->numLines = numLines;
     for (int i = 0; i < 2; ++i) triggers[i].resize(numLines, 0);
@@ -126,7 +123,7 @@ void AppCore::setNumLines(int arg){
     for(int i = 0, len = instances.size(); i < len; ++i) {
         pd.startMessage();
         pd.addSymbol("note");
-        pd.addFloat(notes[i]);
+        pd.addFloat((float) notes[i]);
         pd.finishList(instances[i].dollarZeroStr()+"-instance");
 	}
 }

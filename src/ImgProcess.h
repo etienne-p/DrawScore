@@ -9,6 +9,10 @@
 #ifndef DrawScore_ImgProcess_h
 #define DrawScore_ImgProcess_h
 
+#include <algorithm>  
+
+using namespace std;
+
 namespace ImgProcess {
 
     // convert color to grayscale using luminosity method
@@ -19,6 +23,8 @@ namespace ImgProcess {
     
     // convert to binary
     unsigned char * threshold(unsigned char * input, int width, int height, unsigned char threshold);
+    
+    unsigned char * offset(unsigned char * input, int width, int height, unsigned char offset);
     
     // meant to be used on a thresholded image
     float averagePixelValue(unsigned char * input, int width, int height);
