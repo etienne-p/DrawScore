@@ -159,7 +159,6 @@ FrameStatus Reader::update(){
             error = "[INVALID] high variance";
             returnValue = INVALID;
         }
-        
     }
 
     if (regulationActive && regulationValue != 1) regulator.update(regulationValue);

@@ -14,6 +14,7 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     
 	numLines = 7;
     toggleFrame = 1;
+    invalidFramesCount = 0;
     
     // we store the 2 latest frames, reusing the same vectors
     while (triggers.size() < 2) triggers.push_back(vector<int>());
@@ -45,15 +46,25 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
 //--------------------------------------------------------------
 void AppCore::update() {
     
+    
+    bool frameValid = (reader->update() == VALID);
+    
+    if (!frameValid && ++invalidFramesCount < 4) return;
+    
     // detect changes
     toggleFrame *= -1;
     int prev = toggleFrame > 0 ? 0 : 1;
     int cur = toggleFrame > 0 ? 1 : 0;
     
-    if (reader->update() == VALID) reader->getTriggers(triggers[cur]);
-    else for (int i = 0; i < numLines; ++i) triggers[cur][i] = -1;
+    if (frameValid){
+        invalidFramesCount = 0;
+        reader->getTriggers(triggers[cur]);
+    } else {
+        for (int i = 0; i < numLines; ++i) triggers[cur][i] = -1;
+    }
     
-    // update patches on change
+    // update patches if the frame is valid, or if we are having a serie of invalid frames
+    // so we avoid audio glitches in case of isolated invalid frames
     for (int i = 0; i < numLines; ++i){
         if (triggers[cur][i] != triggers[prev][i]){
             pd.sendSymbol(instances[i].dollarZeroStr()+"-instance", triggers[cur][i] > 0 ? "on" : "off");

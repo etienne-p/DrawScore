@@ -53,6 +53,7 @@ public:
     
     vector<vector<int> > triggers;
     
+    int invalidFramesCount;
     int toggleFrame;
     
     int numLines;
