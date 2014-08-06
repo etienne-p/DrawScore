@@ -44,6 +44,8 @@ public:
     ofxPd pd;
     vector<Patch> instances;
     
+    void setVolume(float value);
+    
     // UI
     void guiEvent(ofxUIEventArgs &e);
     ofxUICanvas *gui;
@@ -58,6 +60,8 @@ public:
     
     int numLines;
     void setNumLines(int arg);
+    
+    float volume;
 
 };
 

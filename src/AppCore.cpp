@@ -22,12 +22,15 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
 	reader = new Reader();
     reader->setup(numLines);
     
+    volume = 0.5f;
+    
     // setup gui
     gui = new ofxUICanvas();
     gui->addToggle("REGULATION", reader->regulationActive);
     gui->addSlider("TRIGGER_THRESHOLD", 0, 1, reader->triggerThreshold);
-    gui->addSlider("MAX_VARIANCE", 0, 0.5, reader->maxVariance);
+    gui->addSlider("MAX_VARIANCE", 0, 0.2, reader->maxVariance);
     gui->addSlider("MAX_AVERAGE_WEIGHT", 0, 0.2, reader->maxAverageWeight);
+    gui->addSlider("VOLUME", 0, 1, volume);
     gui->autoSizeToFitWidgets();
     gui->loadSettings("settings.xml");
     ofAddListener(gui->newGUIEvent, this, &AppCore::guiEvent);
@@ -103,6 +106,10 @@ void AppCore::guiEvent(ofxUIEventArgs &e) {
     } else if (e.getName() == "MAX_AVERAGE_WEIGHT"){
         ofxUISlider *slider = e.getSlider();
         reader->maxAverageWeight = slider->getScaledValue();
+    } else if (e.getName() == "VOLUME"){
+        ofxUISlider *slider = e.getSlider();
+        volume = slider->getScaledValue();
+        setVolume(volume);
     }
 }
 
@@ -135,6 +142,17 @@ void AppCore::setNumLines(int arg){
         pd.startMessage();
         pd.addSymbol("note");
         pd.addFloat((float) notes[i]);
+        pd.finishList(instances[i].dollarZeroStr()+"-instance");
+	}
+    
+    setVolume(volume);
+}
+
+void AppCore::setVolume(float value){
+    for(int i = 0, len = instances.size(); i < len; ++i) {
+        pd.startMessage();
+        pd.addSymbol("volume");
+        pd.addFloat(volume);
         pd.finishList(instances[i].dollarZeroStr()+"-instance");
 	}
 }
