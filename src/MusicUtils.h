@@ -17,7 +17,7 @@ namespace MusicUtils {
     
     enum Mood { MINOR, MAJOR };
     
-    void getMidiNotes(vector<int> &v, Mood mood, int count);
+    int * getMidiNotes(int rootNote, Mood mood, int count);
 
 };
 

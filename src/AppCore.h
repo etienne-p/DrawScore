@@ -45,6 +45,10 @@ public:
     vector<Patch> instances;
     
     void setVolume(float value);
+    void setNotes(int rootNote_, Mood mood_);
+    
+    int rootNote;
+    Mood mood;
     
     // UI
     void guiEvent(ofxUIEventArgs &e);

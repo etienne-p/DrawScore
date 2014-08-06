@@ -24,6 +24,9 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     
     volume = 0.5f;
     
+    rootNote = 48; // C3
+    mood = MAJOR;
+    
     // setup gui
     gui = new ofxUICanvas();
     gui->addToggle("REGULATION", reader->regulationActive);
@@ -31,6 +34,7 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     gui->addSlider("MAX_VARIANCE", 0, 0.4, reader->maxVariance);
     gui->addSlider("MAX_AVERAGE_WEIGHT", 0, 0.2, reader->maxAverageWeight);
     gui->addIntSlider("NUM_LINES", 3, 12, numLines);
+    gui->addIntSlider("ROOT_NOTE", 10, 80, rootNote);
     gui->addSlider("VOLUME", 0, 1, volume);
     gui->autoSizeToFitWidgets();
     //gui->loadSettings("settings.xml");
@@ -111,6 +115,10 @@ void AppCore::guiEvent(ofxUIEventArgs &e) {
         ofxUIIntSlider *slider = (ofxUIIntSlider *) e.getSlider();
         numLines = slider->getValue();
         setNumLines(numLines);
+    } else if (e.getName() == "ROOT_NOTE"){
+        ofxUIIntSlider *slider = (ofxUIIntSlider *) e.getSlider();
+        rootNote = slider->getValue();
+        setNotes(rootNote, mood);
     } else if (e.getName() == "VOLUME"){
         ofxUISlider *slider = e.getSlider();
         volume = slider->getScaledValue();
@@ -138,10 +146,14 @@ void AppCore::setNumLines(int arg){
             instances.push_back(p);
         }
     }
+    setNotes(rootNote, mood);
+    setVolume(volume);
+}
+
+void AppCore::setNotes(int rootNote_, Mood mood_){
     
     // set midi note for each voice
-    vector<int> notes;
-    getMidiNotes(notes, MAJOR, instances.size());
+    int * notes = getMidiNotes(rootNote_, mood_, instances.size()); // 48 = C3
     
     for(int i = 0, len = instances.size(); i < len; ++i) {
         pd.startMessage();
@@ -150,7 +162,8 @@ void AppCore::setNumLines(int arg){
         pd.finishList(instances[i].dollarZeroStr()+"-instance");
 	}
     
-    setVolume(volume);
+    delete[] notes; // necessary?
+    
 }
 
 void AppCore::setVolume(float value){
