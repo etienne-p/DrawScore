@@ -35,6 +35,7 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     gui->addSlider("MAX_AVERAGE_WEIGHT", 0, 0.2, reader->maxAverageWeight);
     gui->addIntSlider("NUM_LINES", 3, 12, numLines);
     gui->addIntSlider("ROOT_NOTE", 10, 80, rootNote);
+    gui->addToggle("MAJOR", mood == MAJOR);
     gui->addSlider("VOLUME", 0, 1, volume);
     gui->autoSizeToFitWidgets();
     //gui->loadSettings("settings.xml");
@@ -118,6 +119,10 @@ void AppCore::guiEvent(ofxUIEventArgs &e) {
     } else if (e.getName() == "ROOT_NOTE"){
         ofxUIIntSlider *slider = (ofxUIIntSlider *) e.getSlider();
         rootNote = slider->getValue();
+        setNotes(rootNote, mood);
+    } else if(e.getName() == "MAJOR") {
+        ofxUIToggle *toggle = e.getToggle();
+        mood = (bool) toggle->getValue() ? MAJOR : MINOR;
         setNotes(rootNote, mood);
     } else if (e.getName() == "VOLUME"){
         ofxUISlider *slider = e.getSlider();
