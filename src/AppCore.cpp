@@ -28,11 +28,12 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     gui = new ofxUICanvas();
     gui->addToggle("REGULATION", reader->regulationActive);
     gui->addSlider("TRIGGER_THRESHOLD", 0, 1, reader->triggerThreshold);
-    gui->addSlider("MAX_VARIANCE", 0, 0.2, reader->maxVariance);
+    gui->addSlider("MAX_VARIANCE", 0, 0.4, reader->maxVariance);
     gui->addSlider("MAX_AVERAGE_WEIGHT", 0, 0.2, reader->maxAverageWeight);
+    gui->addIntSlider("NUM_LINES", 3, 12, numLines);
     gui->addSlider("VOLUME", 0, 1, volume);
     gui->autoSizeToFitWidgets();
-    gui->loadSettings("settings.xml");
+    //gui->loadSettings("settings.xml");
     ofAddListener(gui->newGUIEvent, this, &AppCore::guiEvent);
     
     // TODO: nicer exit
@@ -88,7 +89,7 @@ void AppCore::exit() {
 	instances.clear();
     
     // save & destroy GUI
-    gui->saveSettings("settings.xml");
+    //gui->saveSettings("settings.xml");
     delete gui;
 }
 
@@ -106,6 +107,10 @@ void AppCore::guiEvent(ofxUIEventArgs &e) {
     } else if (e.getName() == "MAX_AVERAGE_WEIGHT"){
         ofxUISlider *slider = e.getSlider();
         reader->maxAverageWeight = slider->getScaledValue();
+    }  else if (e.getName() == "NUM_LINES"){
+        ofxUIIntSlider *slider = (ofxUIIntSlider *) e.getSlider();
+        numLines = slider->getValue();
+        setNumLines(numLines);
     } else if (e.getName() == "VOLUME"){
         ofxUISlider *slider = e.getSlider();
         volume = slider->getScaledValue();

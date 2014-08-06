@@ -26,11 +26,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/AppCore.cpp"
-            timestampString = "428979347.702811"
+            timestampString = "428979729.755544"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "72"
-            endingLineNumber = "72"
+            startingLineNumber = "73"
+            endingLineNumber = "73"
             landmarkName = "AppCore::update()"
             landmarkType = "5">
          </BreakpointContent>
@@ -42,11 +42,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "src/AppCore.cpp"
-            timestampString = "428979161.385391"
+            timestampString = "428979729.755544"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "33"
-            endingLineNumber = "33"
+            startingLineNumber = "34"
+            endingLineNumber = "34"
             landmarkName = "AppCore::setup(const int numOutChannels, const int numInChannels, const int sampleRate, const int ticksPerBuffer)"
             landmarkType = "5">
          </BreakpointContent>
