@@ -1,2 +1,4 @@
+ofxAndroid
+ofxAccelerometer
 ofxUI
-ofxXmlSettings
+ofxPd

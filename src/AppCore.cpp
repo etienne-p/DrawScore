@@ -167,7 +167,7 @@ void AppCore::setNotes(int rootNote_, Mood mood_){
         pd.finishList(instances[i].dollarZeroStr()+"-instance");
 	}
     
-    delete[] notes; // necessary?
+    delete[] notes; // necessary? maybe a vector would be better
     
 }
 

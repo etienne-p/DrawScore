@@ -1,0 +1,6 @@
+set solib-search-path /Users/etienne/Dev/of_v0.8.3_android_release/apps/myApps/DrawScore//obj/local/armeabi-v7a:/Users/etienne/Dev/of_v0.8.3_android_release/apps/myApps/DrawScore//libs/armeabi-v7a
+directory /Users/etienne/Dev/android-ndk-r9c/platforms/android-17/arch-arm/usr/include
+directory /Users/etienne/Dev/of_v0.8.3_android_release/apps/myApps/DrawScore//src
+directory /Users/etienne/Dev/android-ndk-r9c/sources/cxx-stl/system
+directory /Users/etienne/Dev/of_v0.8.3_android_release/apps/myApps/DrawScore//libs/armeabi-v7a
+
