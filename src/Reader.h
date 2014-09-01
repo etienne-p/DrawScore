@@ -28,7 +28,7 @@ public:
     
     void setup(int num);
     FrameStatus update();
-    void draw();
+    void draw(int x, int y);
     void getTriggers(vector<int> &v);
 
     ~Reader();

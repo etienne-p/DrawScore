@@ -12,6 +12,8 @@
 void AppCore::setup(const int numOutChannels, const int numInChannels,
                     const int sampleRate, const int ticksPerBuffer) {
     
+	ofSetOrientation(OF_ORIENTATION_90_LEFT);
+
 	numLines = 7;
     toggleFrame = 1;
     invalidFramesCount = 0;
@@ -29,8 +31,17 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     
     // setup gui
     gui = new ofxUICanvas();
+    gui->setRetinaResolution();
+    gui->setWidth(800);
+    gui->setHeight(ofGetHeight());
+    gui->setFont("GUI/faucet.ttf");                     //This loads a new font and sets the GUI font
+    gui->setFontSize(OFX_UI_FONT_LARGE, 18);            //These call are optional, but if you want to resize the LARGE, MEDIUM, and SMALL fonts, here is how to do it.
+    gui->setFontSize(OFX_UI_FONT_MEDIUM, 14);
+    gui->setFontSize(OFX_UI_FONT_SMALL, 10);            //SUPER IMPORTANT NOTE: CALL THESE FUNTIONS BEFORE ADDING ANY WIDGETS, THIS AFFECTS THE SPACING OF THE GUI
+
     gui->addToggle("REGULATION", reader->regulationActive);
     gui->addSlider("TRIGGER_THRESHOLD", 0, 1, reader->triggerThreshold);
+
     gui->addSlider("MAX_VARIANCE", 0, 0.4, reader->maxVariance);
     gui->addSlider("MAX_AVERAGE_WEIGHT", 0, 0.2, reader->maxAverageWeight);
     gui->addIntSlider("NUM_LINES", 3, 12, numLines);
@@ -48,7 +59,7 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     pd.addToSearchPath("pd");
 	pd.start();
     
-    ofSetVerticalSync(true);
+    ofSetVerticalSync(false);
     setNumLines(numLines);
 }
 
@@ -83,7 +94,7 @@ void AppCore::update() {
 
 //--------------------------------------------------------------
 void AppCore::draw() {
-    reader->draw();
+    reader->draw(840, 20);
 }
 
 //--------------------------------------------------------------

@@ -7,6 +7,7 @@
 //
 
 #include "Reader.h"
+#include "ofxAndroidVideoGrabber.h"
 
 void Reader::setup(int num){
     
@@ -41,17 +42,19 @@ void Reader::setup(int num){
     
     triggerWeightThreshold = 0;
     
+    // DEBUG: removed device selection
+
     // select device
-	vector<ofVideoDevice> devices = vidGrabber.listDevices();
+	/*vector<ofVideoDevice> devices = vidGrabber.listDevices();
     for(int i = 0; i < devices.size(); i++){
 		cout << devices[i].id << ": " << devices[i].deviceName;
         if( devices[i].bAvailable ) cout << endl;
         else cout << " - unavailable " << endl;
-	}
+	}*/
     
     // TODO: select back camera
-	vidGrabber.setDeviceID(0);
-	vidGrabber.setDesiredFrameRate(60);
+	//vidGrabber.setDeviceID(0);
+	//vidGrabber.setDesiredFrameRate(60);
 	vidGrabber.initGrabber(camWidth,camHeight);
     videoTexture.allocate(cropRect.width,cropRect.height, GL_RGB);
 }
@@ -175,17 +178,17 @@ void Reader::getTriggers(vector<int> &v){
 }
 
 // used for debugging, Reader won't have a UI in production
-void Reader::draw(){
+void Reader::draw(int x, int y){
     
     // draw source & processed capture
 	ofSetColor(255, 255, 255);
-	int cx = 250;
-	videoTexture.draw(cx,0,cropRect.width,cropRect.height);
+	int cx = x;
+	videoTexture.draw(cx, y, cropRect.width, cropRect.height);
         // draw histogram
     ofNoFill();
 	ofBeginShape();
     for(int i = 0, len = (int) cropRect.height; i < len; ++i){
-		ofVertex(cx + hSumValues[i], i);
+		ofVertex(cx + hSumValues[i], y + i);
 	}
 	ofEndShape(false);
     
@@ -193,18 +196,18 @@ void Reader::draw(){
     ofSetColor(0, 255, 0);
     ofFill();
     for(int i = 0, len = triggers.size(); i < len; ++i){
-        ofCircle(cx + 255, cropRect.height * triggers[i].position, triggers[i].weight * cropRect.height);
+        ofCircle(cx + 255, y + cropRect.height * triggers[i].position, triggers[i].weight * cropRect.height);
     }
     
     // print data
     ofSetColor(255, 0, 0);
     cx += cropRect.width;
-    ofDrawBitmapString("size: " + ofToString(triggers.size()), cx, 10);
-    ofDrawBitmapString("output: " + ofToString(regulator.output), cx, 30);
-    ofDrawBitmapString("setPoint: " + ofToString(regulator.setPoint), cx, 50);
-    ofDrawBitmapString("variance: " + ofToString(variance), cx, 70);
-    ofDrawBitmapString("average weight: " + ofToString(averageWeight), cx, 90);
-    ofDrawBitmapString("error: " + error, cx, 110);
+    ofDrawBitmapString("size: " + ofToString(triggers.size()), cx, y + 10);
+    ofDrawBitmapString("output: " + ofToString(regulator.output), cx, y + 30);
+    ofDrawBitmapString("setPoint: " + ofToString(regulator.setPoint), cx, y + 50);
+    ofDrawBitmapString("variance: " + ofToString(variance), cx, y + 70);
+    ofDrawBitmapString("average weight: " + ofToString(averageWeight), cx, y + 90);
+    ofDrawBitmapString("error: " + error, cx, y + 110);
 }
 
 Reader::~Reader(){
