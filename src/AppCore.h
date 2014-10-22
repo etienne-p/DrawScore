@@ -11,13 +11,15 @@
 
 #include "ofMain.h"
 #include "ofxPd.h"
+#include "WidgetObserver.h"
 #include "Reader.h"
+#include "Slider.h"
 #include "MusicUtils.h"
 
 using namespace MusicUtils;
 using namespace pd;
 
-class AppCore : public PdReceiver {
+class AppCore : public PdReceiver, public WidgetObserver {
     
 public:
     
@@ -66,6 +68,10 @@ public:
     void setNumLines(int arg);
     
     float volume;
+    
+    void parameterChanged(int id, float value);
+    void parameterChanged(int id, bool value);
+    Slider * testSlider;
 
 };
 

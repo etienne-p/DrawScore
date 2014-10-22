@@ -95,6 +95,8 @@
 		8FA03CF019843A8D005C497E /* AppCore.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8FA03CEE19843A8D005C497E /* AppCore.cpp */; };
 		8FD2337C1988520C00D52371 /* MusicUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8FD2337A1988520C00D52371 /* MusicUtils.cpp */; };
 		BBAB23CB13894F3D00AA2426 /* GLUT.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = BBAB23BE13894E4700AA2426 /* GLUT.framework */; };
+		E404492419F80F1F004181F6 /* Slider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E404492219F80F1F004181F6 /* Slider.cpp */; };
+		E404492719F82785004181F6 /* CheckBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E404492519F82785004181F6 /* CheckBox.cpp */; };
 		E4328149138ABC9F0047C5CB /* openFrameworksDebug.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E4328148138ABC890047C5CB /* openFrameworksDebug.a */; };
 		E45BE97B0E8CC7DD009D7055 /* AGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E45BE9710E8CC7DD009D7055 /* AGL.framework */; };
 		E45BE97C0E8CC7DD009D7055 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E45BE9720E8CC7DD009D7055 /* ApplicationServices.framework */; };
@@ -330,6 +332,12 @@
 		8FD2337A1988520C00D52371 /* MusicUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MusicUtils.cpp; sourceTree = "<group>"; };
 		8FD2337B1988520C00D52371 /* MusicUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MusicUtils.h; sourceTree = "<group>"; };
 		BBAB23BE13894E4700AA2426 /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = ../../../libs/glut/lib/osx/GLUT.framework; sourceTree = "<group>"; };
+		E404492219F80F1F004181F6 /* Slider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Slider.cpp; sourceTree = "<group>"; };
+		E404492319F80F1F004181F6 /* Slider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Slider.h; sourceTree = "<group>"; };
+		E404492519F82785004181F6 /* CheckBox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CheckBox.cpp; sourceTree = "<group>"; };
+		E404492619F82785004181F6 /* CheckBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CheckBox.h; sourceTree = "<group>"; };
+		E404492819F85396004181F6 /* WidgetObserver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WidgetObserver.h; sourceTree = "<group>"; };
+		E404492919F85A1F004181F6 /* Widget.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Widget.h; sourceTree = "<group>"; };
 		E4328143138ABC890047C5CB /* openFrameworksLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = openFrameworksLib.xcodeproj; path = ../../../libs/openFrameworksCompiled/project/osx/openFrameworksLib.xcodeproj; sourceTree = SOURCE_ROOT; };
 		E45BE9710E8CC7DD009D7055 /* AGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AGL.framework; path = /System/Library/Frameworks/AGL.framework; sourceTree = "<absolute>"; };
 		E45BE9720E8CC7DD009D7055 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
@@ -965,6 +973,8 @@
 		E4B69E1C0A3A1BDC003C02F2 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				E404492219F80F1F004181F6 /* Slider.cpp */,
+				E404492319F80F1F004181F6 /* Slider.h */,
 				E474C9D9197477D9002117C2 /* ImgProcess.cpp */,
 				E474C9DA197477D9002117C2 /* ImgProcess.h */,
 				E4B69E1D0A3A1BDC003C02F2 /* main.cpp */,
@@ -977,6 +987,10 @@
 				8FA03CEF19843A8D005C497E /* AppCore.h */,
 				8FD2337A1988520C00D52371 /* MusicUtils.cpp */,
 				8FD2337B1988520C00D52371 /* MusicUtils.h */,
+				E404492519F82785004181F6 /* CheckBox.cpp */,
+				E404492619F82785004181F6 /* CheckBox.h */,
+				E404492819F85396004181F6 /* WidgetObserver.h */,
+				E404492919F85A1F004181F6 /* Widget.h */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;
@@ -1215,6 +1229,8 @@
 				E474C9D8197474E7002117C2 /* ofxUIWidgetWithLabel.cpp in Sources */,
 				E474C9DB197477D9002117C2 /* ImgProcess.cpp in Sources */,
 				8F807780198448B200D26E6E /* g_numbox.c in Sources */,
+				E404492419F80F1F004181F6 /* Slider.cpp in Sources */,
+				E404492719F82785004181F6 /* CheckBox.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

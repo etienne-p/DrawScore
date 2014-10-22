@@ -50,6 +50,12 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     
     ofSetVerticalSync(true);
     setNumLines(numLines);
+    
+    testSlider = new Slider(0, 10, 60, 0, this);
+    testSlider->position.set(80, 600);
+    testSlider->setCursorRadius(20);
+    testSlider->setWidth(400);
+    testSlider->setActive(true);
 }
 
 //--------------------------------------------------------------
@@ -84,6 +90,7 @@ void AppCore::update() {
 //--------------------------------------------------------------
 void AppCore::draw() {
     reader->draw();
+    testSlider->draw();
 }
 
 //--------------------------------------------------------------
@@ -230,3 +237,16 @@ void AppCore::receiveMessage(const std::string& dest, const std::string& msg, co
 void AppCore::print(const std::string& message) {
 	cout << message << endl;
 }
+
+//--------------------------------------------------------------
+void AppCore::parameterChanged(int id, float value) {
+    cout << "slider id: " << ofToString(id) << " value: " << ofToString(value) << endl;
+}
+
+//--------------------------------------------------------------
+void AppCore::parameterChanged(int id, bool value) {
+
+}
+
+
+
