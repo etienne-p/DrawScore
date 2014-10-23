@@ -8,12 +8,12 @@
 
 #include "Slider.h"
 
-Slider::Slider(int id_, float min_, float max_, int eventPriority_, WidgetObserver * observer_){
-    id = id_;
+Slider::Slider(int id_, WidgetObserver * observer_, string label_, ofTrueTypeFont * font_, float min_, float max_, int eventPriority_) : Widget(id_, observer_){
+    label = label_;
+    font = font_;
     min = min_;
     max = max_;
     eventPriority = eventPriority_;
-    observer = observer_;
     position.set(.0f, .0f);
     cursorPosition.set(.0f, .0f);
     width = .0f;
@@ -22,19 +22,23 @@ Slider::Slider(int id_, float min_, float max_, int eventPriority_, WidgetObserv
     setValue(0);
 }
 
-Slider::~Slider(){
-    setActive(false);
-    observer = NULL;
-}
-
 void Slider::draw(){
-    ofSetColor(0, 0, 255);    //set te color to blue
+    ofSetColor(ofColor::gray);
     ofPushMatrix();
     ofTranslate(position);
-    ofRect(cursorRadius, cursorRadius - 2.f, width - 2.f * cursorRadius, 4.f);
+    font->drawString(label, 0, font->getLineHeight());
+    string vStr = ofToString(value);
+    font->drawString(vStr, width - font->getStringBoundingBox(vStr, 0, 0).width, font->getLineHeight());
+    ofRect(cursorRadius, cursorPosition.y - 2.f, width - 2.f * cursorRadius, 4.f);
     ofCircle(cursorPosition, cursorRadius);
     ofPopMatrix();
+    
     bool touched = currentTouchId == -1; // highlight on touch
+}
+
+Slider::~Slider(){
+    font = NULL;
+    setActive(false);
 }
 
 void Slider::setActive(bool active_){
@@ -61,6 +65,7 @@ bool Slider::touchDownHandler(ofTouchEventArgs &touch){
 bool Slider::touchMoveHandler(ofTouchEventArgs &touch){
     if (touch.id == currentTouchId){
         setCursorPosition(globalToLocal(touch.x, touch.y));
+        return true;
     }
     return false;
 }
@@ -93,29 +98,22 @@ float Slider::getValue(){
 
 void Slider::setWidth(float width_){
     width = width_;
-    setValue(value);
 }
 
 float Slider::getWidth(){
     return width;
 }
 
+float Slider::getHeight(){
+    return cursorRadius * 2.f + font->getLineHeight() * 1.4f;
+}
+
 void Slider::setCursorRadius(float radius_){
     cursorRadius = radius_;
-    cursorPosition.y = cursorRadius;
+    cursorPosition.y = cursorRadius + font->getLineHeight() * 1.4f;
     setValue(value);
 }
 
 float Slider::getCursorRadius(){
     return cursorRadius;
-}
-
-// Helpers
-
-ofVec2f Slider::globalToLocal(ofVec2f position_){
-    return position_ - position;
-}
-
-ofVec2f Slider::globalToLocal(float x_, float y_){
-    return globalToLocal(ofVec2f(x_, y_));
 }

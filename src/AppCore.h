@@ -14,6 +14,7 @@
 #include "WidgetObserver.h"
 #include "Reader.h"
 #include "Slider.h"
+#include "CheckBox.h"
 #include "MusicUtils.h"
 
 using namespace MusicUtils;
@@ -72,7 +73,9 @@ public:
     void parameterChanged(int id, float value);
     void parameterChanged(int id, bool value);
     Slider * testSlider;
-
+    CheckBox * testCheckBox;
+    
+    ofTrueTypeFont font;
 };
 
 #endif

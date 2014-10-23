@@ -10,8 +10,9 @@
 #define __DrawScore__CheckBox__
 
 #include "ofMain.h"
+#include "Widget.h"
 
-class CheckBox {
+class CheckBox : public Widget {
     
 public:
     
@@ -19,15 +20,20 @@ public:
     void draw();
     void setActive(bool active_);
     
-    ofVec2f position;
+    float getWidth();
+    float getHeight();
+    
     float radius;
     
     bool checked;
     
-    CheckBox(int id_, int eventPriority_);
+    CheckBox(int id_, WidgetObserver * observer_, string label, ofTrueTypeFont * font_, int eventPriority_);
     ~CheckBox();
     
 private:
+    
+    string label;
+    ofTrueTypeFont * font;
     
     bool touchDownHandler(ofTouchEventArgs &touch);
     

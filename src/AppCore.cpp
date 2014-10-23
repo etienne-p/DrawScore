@@ -51,11 +51,21 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     ofSetVerticalSync(true);
     setNumLines(numLines);
     
-    testSlider = new Slider(0, 10, 60, 0, this);
+    ofTrueTypeFont::setGlobalDpi(72);
+    font.loadFont("fonts/verdana.ttf", 12);
+	//font.setLineHeight(18.0f);
+	//font.setLetterSpacing(1.037);
+    
+    testSlider = new Slider(0, this, "Something", &font, 10, 60, 0);
     testSlider->position.set(80, 600);
-    testSlider->setCursorRadius(20);
+    testSlider->setCursorRadius(8);
     testSlider->setWidth(400);
     testSlider->setActive(true);
+    
+    testCheckBox = new CheckBox(1, this, "Something else", &font, 0);
+    testCheckBox->radius = 8;
+    testCheckBox->position.set(80, 680);
+    testCheckBox->setActive(true);
 }
 
 //--------------------------------------------------------------
@@ -89,8 +99,9 @@ void AppCore::update() {
 
 //--------------------------------------------------------------
 void AppCore::draw() {
-    reader->draw();
+    //reader->draw();
     testSlider->draw();
+    testCheckBox->draw();
 }
 
 //--------------------------------------------------------------
@@ -245,7 +256,7 @@ void AppCore::parameterChanged(int id, float value) {
 
 //--------------------------------------------------------------
 void AppCore::parameterChanged(int id, bool value) {
-
+    cout << "checkbox id: " << ofToString(id) << " value: " << ofToString(value) << endl;
 }
 
 

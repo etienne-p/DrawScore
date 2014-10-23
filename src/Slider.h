@@ -22,23 +22,24 @@ public:
     void draw();
     
     // display object
-    void setWidth(float width_);
     float getWidth();
+    float getHeight();
+    void setWidth(float width_);
+    
     void setCursorRadius(float radius_);
     float getCursorRadius();
-    ofVec2f position;
         
     void setValue(float value_);
     float getValue();
     
-    Slider(int id_, float min_, float max, int eventPriority_, WidgetObserver * observer_);
+    Slider(int id_, WidgetObserver * observer_, string label_, ofTrueTypeFont * font_, float min_, float max, int eventPriority_);
     ~Slider();
  
 private:
     
-    int id;
+    ofTrueTypeFont * font;
+    string label;
     
-    WidgetObserver * observer;
     float value, min, max;
     
     bool touchDownHandler(ofTouchEventArgs &touch);
@@ -54,10 +55,6 @@ private:
     float width;    
     ofVec2f cursorPosition;
     float cursorRadius;
-    
-    // helper
-    ofVec2f globalToLocal(ofVec2f position_);
-    ofVec2f globalToLocal(float x_, float y_);
 };
 
 
