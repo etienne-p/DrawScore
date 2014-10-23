@@ -18,6 +18,7 @@ void ofApp::setup(){
     
 	// setup the app core
 	core.setup(2, numInputs, 44100, ticksPerBuffer);
+    core.resize(ofGetWidth(), ofGetHeight());
 }
 
 //--------------------------------------------------------------
@@ -83,7 +84,7 @@ void ofApp::mouseMoved(int x, int y ){
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h){
-    
+    core.resize(w, h);
 }
 
 //--------------------------------------------------------------

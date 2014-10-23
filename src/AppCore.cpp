@@ -8,6 +8,16 @@
 
 #include "AppCore.h"
 
+// Parameters ID
+#define P_REGULATION 0
+#define P_TRIGGER_THRESHOLD 1
+#define P_MAX_VARIANCE 2
+#define P_MAX_AVERAGE_WEIGHT 3
+#define P_NUM_LINES 4
+#define P_ROOT_NOTE 5
+#define P_MAJOR 6
+#define P_VOLUME 7
+
 //--------------------------------------------------------------
 void AppCore::setup(const int numOutChannels, const int numInChannels,
                     const int sampleRate, const int ticksPerBuffer) {
@@ -28,18 +38,45 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     mood = MAJOR;
     
     // setup gui
-    gui = new ofxUICanvas();
-    gui->addToggle("REGULATION", reader->regulationActive);
-    gui->addSlider("TRIGGER_THRESHOLD", 0, 1, reader->triggerThreshold);
-    gui->addSlider("MAX_VARIANCE", 0, 0.4, reader->maxVariance);
-    gui->addSlider("MAX_AVERAGE_WEIGHT", 0, 0.2, reader->maxAverageWeight);
-    gui->addIntSlider("NUM_LINES", 3, 12, numLines);
-    gui->addIntSlider("ROOT_NOTE", 10, 80, rootNote);
-    gui->addToggle("MAJOR", mood == MAJOR);
-    gui->addSlider("VOLUME", 0, 1, volume);
-    gui->autoSizeToFitWidgets();
-    //gui->loadSettings("settings.xml");
-    ofAddListener(gui->newGUIEvent, this, &AppCore::guiEvent);
+    ofTrueTypeFont::setGlobalDpi(72);
+    //font.loadFont("fonts/verdana.ttf", 12);
+    int eventPriority = 0;
+    
+    CheckBox * wRegulation = new CheckBox(P_REGULATION, this, "Regulation", &font, eventPriority);
+    wRegulation->checked = reader->regulationActive;
+    widgets.push_back(wRegulation);
+   
+    CheckBox * wMood = new CheckBox(P_MAJOR, this, "Major Scale", &font, eventPriority);
+    wMood->checked = mood == MAJOR;
+    widgets.push_back(wMood);
+    
+    Slider * wTriggerThreshold = new Slider(P_TRIGGER_THRESHOLD, this, "Trigger Threshold", &font, 0.f, 1.f, eventPriority);
+    wTriggerThreshold->setValue(reader->triggerThreshold);
+    widgets.push_back(wTriggerThreshold);
+    
+    Slider * wMaxVariance = new Slider(P_MAX_VARIANCE, this, "Max Variance", &font, 0.f, .4f, eventPriority);
+    wMaxVariance->setValue(reader->maxVariance);
+    widgets.push_back(wMaxVariance);
+    
+    Slider * wMaxAverageWeight = new Slider(P_MAX_AVERAGE_WEIGHT, this, "Max Average Weight", &font, 0.f, .2f, eventPriority);
+    wMaxAverageWeight->setValue(reader->maxAverageWeight);
+    widgets.push_back(wMaxAverageWeight);
+    
+    Slider * wNumLines = new Slider(P_NUM_LINES, this, "Num Lines", &font, 3, 12, eventPriority);
+    wNumLines->setStep(1.f);
+    wNumLines->setValue(numLines);
+    widgets.push_back(wNumLines);
+    
+    Slider * wRootNote = new Slider(P_ROOT_NOTE, this, "Root Note", &font, 10, 80, eventPriority);
+    wRootNote->setStep(1.f);
+    wRootNote->setValue(rootNote);
+    widgets.push_back(wRootNote);
+    
+    Slider * wVolume = new Slider(P_VOLUME, this, "Volume", &font, 0.f, 1.f, eventPriority);
+    wVolume->setValue(volume);
+    widgets.push_back(wVolume);
+    
+    for (int i = widgets.size() - 1; i > -1; i--) widgets[i]->setActive(true);
     
     // TODO: nicer exit
 	if(!pd.init(numOutChannels, numInChannels, sampleRate, ticksPerBuffer)) OF_EXIT_APP(1);
@@ -50,22 +87,6 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     
     ofSetVerticalSync(true);
     setNumLines(numLines);
-    
-    ofTrueTypeFont::setGlobalDpi(72);
-    font.loadFont("fonts/verdana.ttf", 12);
-	//font.setLineHeight(18.0f);
-	//font.setLetterSpacing(1.037);
-    
-    testSlider = new Slider(0, this, "Something", &font, 10, 60, 0);
-    testSlider->position.set(80, 600);
-    testSlider->setCursorRadius(8);
-    testSlider->setWidth(400);
-    testSlider->setActive(true);
-    
-    testCheckBox = new CheckBox(1, this, "Something else", &font, 0);
-    testCheckBox->radius = 8;
-    testCheckBox->position.set(80, 680);
-    testCheckBox->setActive(true);
 }
 
 //--------------------------------------------------------------
@@ -98,10 +119,54 @@ void AppCore::update() {
 }
 
 //--------------------------------------------------------------
+void AppCore::resize(float width_, float height_) {
+    
+    float radius = MIN((height_ / widgets.size()) * .2f, 20.f);
+    float space = radius * .5f;
+    float slWidth = width_ * .8f;
+    float uiHeight = 0.f;
+    
+    font.loadFont("fonts/verdana.ttf", (int) floorf(MAX(10.f, radius)));
+    //font.setLineHeight(radius);
+    
+    // set checkboxes radius
+    CheckBox * cb = NULL;
+    cb = (CheckBox *) widgets[0];
+    cb->radius = radius;
+    cb = (CheckBox *) widgets[1];
+    cb->radius = radius;
+    uiHeight += cb->getHeight();
+    
+    // set sliders radius
+    for (int i = 2; i < widgets.size(); i++){        
+        Slider * sl = (Slider*) widgets[i];
+        sl->setCursorRadius(radius);
+        sl->setWidth(slWidth);
+        uiHeight += sl->getHeight();
+    }
+    
+    uiHeight += (widgets.size() - 2) * space;
+    
+    ofVec2f wPos((width_ - slWidth) * .5f, (height_ - uiHeight) * .5f);
+    
+    // place check boxes
+    cb = (CheckBox *) widgets[0];
+    cb->position.set(wPos);
+    cb = (CheckBox *) widgets[1];
+    cb->position.set(wPos + ofVec2f(slWidth * .5f, 0));
+    wPos.y += cb->getHeight() + space;
+    
+    // place sliders
+    for (int i = 2; i < widgets.size(); i++){
+        Slider * sl = (Slider*) widgets[i];
+        sl->position.set(wPos);
+        wPos.y += sl->getHeight() + space;
+    }}
+
+//--------------------------------------------------------------
 void AppCore::draw() {
     //reader->draw();
-    testSlider->draw();
-    testCheckBox->draw();
+    for (int i = widgets.size() - 1; i > -1; i--) widgets[i]->draw();
 }
 
 //--------------------------------------------------------------
@@ -110,43 +175,6 @@ void AppCore::exit() {
     // close PD patches
 	for(int i = 0; i < instances.size(); ++i) pd.closePatch(instances[i]);
 	instances.clear();
-    
-    // save & destroy GUI
-    //gui->saveSettings("settings.xml");
-    delete gui;
-}
-
-//--------------------------------------------------------------
-void AppCore::guiEvent(ofxUIEventArgs &e) {
-    if(e.getName() == "REGULATION") {
-        ofxUIToggle *toggle = e.getToggle();
-        reader->regulationActive = toggle->getValue();
-    } else if (e.getName() == "TRIGGER_THRESHOLD"){
-        ofxUISlider *slider = e.getSlider();
-        reader->triggerThreshold = slider->getScaledValue();
-    } else if (e.getName() == "MAX_VARIANCE"){
-        ofxUISlider *slider = e.getSlider();
-        reader->maxVariance = slider->getScaledValue();
-    } else if (e.getName() == "MAX_AVERAGE_WEIGHT"){
-        ofxUISlider *slider = e.getSlider();
-        reader->maxAverageWeight = slider->getScaledValue();
-    }  else if (e.getName() == "NUM_LINES"){
-        ofxUIIntSlider *slider = (ofxUIIntSlider *) e.getSlider();
-        numLines = slider->getValue();
-        setNumLines(numLines);
-    } else if (e.getName() == "ROOT_NOTE"){
-        ofxUIIntSlider *slider = (ofxUIIntSlider *) e.getSlider();
-        rootNote = slider->getValue();
-        setNotes(rootNote, mood);
-    } else if(e.getName() == "MAJOR") {
-        ofxUIToggle *toggle = e.getToggle();
-        mood = (bool) toggle->getValue() ? MAJOR : MINOR;
-        setNotes(rootNote, mood);
-    } else if (e.getName() == "VOLUME"){
-        ofxUISlider *slider = e.getSlider();
-        volume = slider->getScaledValue();
-        setVolume(volume);
-    }
 }
 
 //--------------------------------------------------------------
@@ -252,11 +280,43 @@ void AppCore::print(const std::string& message) {
 //--------------------------------------------------------------
 void AppCore::parameterChanged(int id, float value) {
     cout << "slider id: " << ofToString(id) << " value: " << ofToString(value) << endl;
+    switch (id) {
+        case P_TRIGGER_THRESHOLD:
+            reader->triggerThreshold = value;
+            break;
+        case P_MAX_VARIANCE:
+            reader->maxVariance = value;
+            break;
+        case P_MAX_AVERAGE_WEIGHT:
+            reader->maxAverageWeight = value;
+            break;
+        case P_NUM_LINES:
+            numLines = (int) value;
+            setNumLines(numLines);
+            break;
+        case P_ROOT_NOTE:
+            rootNote = (int) value;
+            setNotes(rootNote, mood);
+            break;
+        case P_VOLUME:
+            volume = value;
+            setVolume(volume);
+            break;
+    }
 }
 
 //--------------------------------------------------------------
 void AppCore::parameterChanged(int id, bool value) {
     cout << "checkbox id: " << ofToString(id) << " value: " << ofToString(value) << endl;
+    switch (id) {
+        case P_REGULATION:
+            reader->regulationActive = value;
+            break;
+        case P_MAJOR:
+            mood = value ? MAJOR : MINOR;
+            setNotes(rootNote, mood);
+            break;
+    }
 }
 
 

@@ -12,6 +12,7 @@
 #include "ofMain.h"
 #include "ofxPd.h"
 #include "WidgetObserver.h"
+#include "Widget.h"
 #include "Reader.h"
 #include "Slider.h"
 #include "CheckBox.h"
@@ -30,6 +31,7 @@ public:
     void update();
     void draw();
     void exit();
+    void resize(float width_, float height_);
     
     // audio callbacks
     void audioReceived(float * input, int bufferSize, int nChannels);
@@ -53,10 +55,6 @@ public:
     int rootNote;
     Mood mood;
     
-    // UI
-    void guiEvent(ofxUIEventArgs &e);
-    ofxUICanvas *gui;
-    
     // CV
     Reader * reader;
     
@@ -72,8 +70,7 @@ public:
     
     void parameterChanged(int id, float value);
     void parameterChanged(int id, bool value);
-    Slider * testSlider;
-    CheckBox * testCheckBox;
+    vector<Widget*> widgets;
     
     ofTrueTypeFont font;
 };

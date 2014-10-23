@@ -19,6 +19,7 @@ Slider::Slider(int id_, WidgetObserver * observer_, string label_, ofTrueTypeFon
     width = .0f;
     cursorRadius = .0f;
     currentTouchId = -1;
+    step = -1.f;
     setValue(0);
 }
 
@@ -26,10 +27,19 @@ void Slider::draw(){
     ofSetColor(ofColor::gray);
     ofPushMatrix();
     ofTranslate(position);
+    
+    ofSetColor(ofColor::lightGray);
+    
+    ofRect(cursorRadius, cursorPosition.y - cursorRadius, width - 2.f * cursorRadius, cursorRadius * 2.f);
+    
+    ofCircle(cursorRadius, cursorPosition.y, cursorRadius);
+    
+    ofCircle(width - cursorRadius, cursorPosition.y, cursorRadius);
+    
+    ofSetColor(ofColor::gray);
     font->drawString(label, 0, font->getLineHeight());
     string vStr = ofToString(value);
     font->drawString(vStr, width - font->getStringBoundingBox(vStr, 0, 0).width, font->getLineHeight());
-    ofRect(cursorRadius, cursorPosition.y - 2.f, width - 2.f * cursorRadius, 4.f);
     ofCircle(cursorPosition, cursorRadius);
     ofPopMatrix();
     
@@ -72,6 +82,7 @@ bool Slider::touchMoveHandler(ofTouchEventArgs &touch){
 
 bool Slider::touchUpHandler(ofTouchEventArgs &touch){
     currentTouchId = -1;
+    setValue(value);
     return false;
 }
 
@@ -82,12 +93,14 @@ void Slider::setCursorPosition(ofVec2f position_){
 
 void Slider::syncValueOnCursor(){
     float ratio = (cursorPosition.x - cursorRadius) / (width - 2 * cursorRadius);
-    value = min + (max - min) * ratio;
+    setValue(min + (max - min) * ratio);
     observer->parameterChanged(id, value);
 }
 
 void Slider::setValue(float value_){
-    value = MIN(max, MAX(min, value_));
+    float steppedValue = value_;
+    if (step > 0.f) steppedValue = floorf(value_ / step) * step;
+    value = MIN(max, MAX(min, steppedValue));
     float ratio = (value - min) / (max - min);
     cursorPosition.x = cursorRadius + (width - 2 * cursorRadius) * ratio;
 }
@@ -116,4 +129,9 @@ void Slider::setCursorRadius(float radius_){
 
 float Slider::getCursorRadius(){
     return cursorRadius;
+}
+
+void Slider::setStep(float step_){
+    step = step_;
+    setValue(value);
 }

@@ -26,12 +26,9 @@ void CheckBox::draw(){
     ofPushMatrix();
     ofTranslate(position);
     float height = getHeight();
+    font->drawString(label, radius * 2.f + font->getStringBoundingBox(label, 0, 0).height * .5f, (height - font->getLineHeight()) * 0.5f + font->getSize());
+    if (!checked) ofSetColor(ofColor::lightGray);
     ofCircle(radius, height * 0.5f, radius);
-    font->drawString(label, radius * 2.f, (height - font->getLineHeight()) * 0.5f + font->getSize());
-    if (!checked){
-        ofSetColor(ofColor::white);
-        ofCircle(radius, height * 0.5f, radius * 0.8);
-    }
     ofPopMatrix();
 }
 
@@ -53,7 +50,8 @@ bool CheckBox::touchDownHandler(ofTouchEventArgs &touch){
 }
 
 float CheckBox::getWidth(){
-    return radius * 2.f + font->getStringBoundingBox(label, 0, 0).width;
+    ofRectangle bnd = font->getStringBoundingBox(label, 0, 0);
+    return radius * 2.f + bnd.width + bnd.height * .5f;
 }
 
 float CheckBox::getHeight(){

@@ -32,6 +32,8 @@ public:
     void setValue(float value_);
     float getValue();
     
+    void setStep(float step_);
+    
     Slider(int id_, WidgetObserver * observer_, string label_, ofTrueTypeFont * font_, float min_, float max, int eventPriority_);
     ~Slider();
  
@@ -39,6 +41,7 @@ private:
     
     ofTrueTypeFont * font;
     string label;
+    float step;
     
     float value, min, max;
     
