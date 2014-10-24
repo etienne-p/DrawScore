@@ -17,6 +17,7 @@
 #define P_ROOT_NOTE 5
 #define P_MAJOR 6
 #define P_VOLUME 7
+#define P_ENVELOPE 8
 
 //--------------------------------------------------------------
 void AppCore::setup(const int sampleRate) {
@@ -28,7 +29,7 @@ void AppCore::setup(const int sampleRate) {
     reader->setup(numLines);
     
     volume = 0.f; // preserve your ears ;)
-    
+    envelopeFactor = 0.0001f;
     rootNote = 48; // C3
     mood = MAJOR;
     
@@ -66,6 +67,10 @@ void AppCore::setup(const int sampleRate) {
     wRootNote->setValue(rootNote);
     widgets.push_back(wRootNote);
     
+    Slider * wEnvelope = new Slider(P_ENVELOPE, this, "Attack / Release", &font, 0.f, 0.0005f, eventPriority);
+    wEnvelope->setValue(envelopeFactor);
+    widgets.push_back(wEnvelope);
+    
     Slider * wVolume = new Slider(P_VOLUME, this, "Volume", &font, 0.f, 1.f, eventPriority);
     wVolume->setValue(volume);
     widgets.push_back(wVolume);
@@ -82,12 +87,11 @@ void AppCore::update() {
     if (reader->update() == VALID){
         reader->getTriggers(triggers);
     } else {
-        for (int i = 0; i < numLines; ++i) triggers[i] = -1;
+        for (int i = 0; i < numLines; i++) triggers[i] = 0;
     }
     
-    for (int i = 0; i < numLines; ++i){
-        float mul = ((triggers[i] > 0 ? 1.f : -1.f) * .05f + 1.f) * synths[i]->mul;
-        synths[i]->mul = MIN(1.f, mul);
+    for (int i = 0;i < numLines; i++){
+        synths[i]->noteOn(triggers[i]);
     }
 }
 
@@ -153,6 +157,14 @@ void AppCore::exit() {
 }
 
 //--------------------------------------------------------------
+void AppCore::setEnvelopeFactor(float value_){
+    envelopeFactor = value_;
+    for(int i = synths.size() - 1; i > -1; i--) {
+        synths[i]->mulInterpolation = envelopeFactor;
+    }
+}
+
+//--------------------------------------------------------------
 void AppCore::setNumLines(int arg){
     
     numLines = arg;
@@ -174,6 +186,7 @@ void AppCore::setNumLines(int arg){
     }
     setNotes(rootNote, mood);
     setVolume(volume);
+    setEnvelopeFactor(envelopeFactor);
 }
 
 void AppCore::setNotes(int rootNote_, Mood mood_){
@@ -232,6 +245,9 @@ void AppCore::parameterChanged(int id, float value) {
         case P_ROOT_NOTE:
             rootNote = (int) value;
             setNotes(rootNote, mood);
+            break;
+        case P_ENVELOPE:
+            setEnvelopeFactor(value);
             break;
         case P_VOLUME:
             volume = value;

@@ -39,18 +39,15 @@ public:
     void setNotes(int rootNote_, Mood mood_);
     
     vector<Synth*> synths;
-    float volume;
+    float volume, envelopeFactor;
+    void setEnvelopeFactor(float value_);
     int rootNote;
     Mood mood;
     
     // cv
     Reader * reader;
-    
     vector<int> triggers;
-    
-    int toggleFrame;
-    
-    int numLines;
+    int toggleFrame, numLines;
     void setNumLines(int arg);
     
     // ui
@@ -58,7 +55,6 @@ public:
     void parameterChanged(int id, bool value);
     vector<Widget*> widgets;
     float width, height;
-    
     ofTrueTypeFont font;
 };
 

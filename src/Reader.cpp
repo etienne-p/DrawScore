@@ -10,21 +10,6 @@
 
 void Reader::setup(int num){
     
-    numLines = num;
-    
-    error = "default";
-    
-    camWidth = 320;	// try to grab at this size.
-	camHeight = 240;
-    
-    // init zone of interest
-    cropRect.x = (camWidth - 12) / 2;
-    cropRect.y = 0;
-    cropRect.width = 12;
-    cropRect.height = camHeight;
-    hSumValues = new float[(int) cropRect.height];
-    
-    // init regulator
     regulator.output = 128;
     regulator.minOutput = 0;
     regulator.maxOutput = 255;
@@ -33,26 +18,37 @@ void Reader::setup(int num){
     regulator.error = 0;
     regulationActive = true;
     
+    numLines = num;
+    error = "";
     triggerThreshold = 0.5;
-    
     maxVariance = 0.05;
-    
     maxAverageWeight = 0.05;
-    
     triggerWeightThreshold = 0;
     
     // select device
+    /*
 	vector<ofVideoDevice> devices = vidGrabber.listDevices();
     for(int i = 0; i < devices.size(); i++){
 		cout << devices[i].id << ": " << devices[i].deviceName;
         if( devices[i].bAvailable ) cout << endl;
         else cout << " - unavailable " << endl;
 	}
+     */
     
     // TODO: select back camera
+    vidGrabber.setVerbose(true);
 	vidGrabber.setDeviceID(0);
 	vidGrabber.setDesiredFrameRate(60);
-	vidGrabber.initGrabber(camWidth,camHeight);
+	vidGrabber.initGrabber(640,480);
+    
+    camWidth = vidGrabber.width;	// try to grab at this size.
+	camHeight = vidGrabber.height;
+    
+    cropRect.x = (camWidth - 12) / 2;
+    cropRect.y = 0;
+    cropRect.width = 12;
+    cropRect.height = camHeight;
+    hSumValues = new float[(int) cropRect.height];
     videoTexture.allocate(cropRect.width,cropRect.height, GL_RGB);
 }
 
@@ -193,12 +189,13 @@ void Reader::draw(ofRectangle bounds, ofTrueTypeFont * font){
 	ofEndShape(false);
     
     ofSetColor(ofColor::white);
+    float rectSide = 8.f;
     for(int i = 0, len = triggers.size(); i < len; ++i){
         float y = cropRect.height * triggers[i].position;
         ofNoFill();
         ofLine(cropRect.width, y, 255, y);
         ofFill();
-        ofCircle(cropRect.width + 255, y, 4.f);
+        ofRect(cropRect.width + 255 - rectSide, y - rectSide * .5f, rectSide, rectSide);
     }
     
     ofPopMatrix();

@@ -21,15 +21,16 @@ class Synth {
     
 public:
     
-    float volume, mul, frequency;
+    float volume, frequency, mulInterpolation;
     
     void processAudio(float * output, int bufferSize);
+    void noteOn(float value_);
     
     Synth();
     
 private:
     
-    float phase, TWOPI_BY_SAMPLERATE;
+    float phase, mul, curMul, TWOPI_BY_SAMPLERATE;
 };
 
 
