@@ -22,6 +22,7 @@ CheckBox::~CheckBox(){
 }
 
 void CheckBox::draw(){
+    ofFill();
     ofSetColor(ofColor::gray);
     ofPushMatrix();
     ofTranslate(position);

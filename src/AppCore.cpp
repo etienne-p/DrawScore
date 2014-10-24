@@ -94,9 +94,13 @@ void AppCore::update() {
 //--------------------------------------------------------------
 void AppCore::resize(float width_, float height_) {
     
+    width = width_;
+    height = height_;
+    
+    float uiWidth = width_ * .5f;
     float radius = MIN((height_ / widgets.size()) * .2f, 20.f);
     float space = radius * .5f;
-    float slWidth = width_ * .8f;
+    float slWidth = uiWidth * .8f;
     float uiHeight = 0.f;
     
     font.loadFont("fonts/verdana.ttf", (int) floorf(MAX(10.f, radius)));
@@ -119,7 +123,7 @@ void AppCore::resize(float width_, float height_) {
     
     uiHeight += (widgets.size() - 2) * space;
     
-    ofVec2f wPos((width_ - slWidth) * .5f, (height_ - uiHeight) * .5f);
+    ofVec2f wPos((uiWidth - slWidth) * .5f, (height_ - uiHeight) * .5f);
     
     // place check boxes
     cb = (CheckBox *) widgets[0];
@@ -137,7 +141,8 @@ void AppCore::resize(float width_, float height_) {
 
 //--------------------------------------------------------------
 void AppCore::draw() {
-    //reader->draw();
+    float marge = width * .05f;
+    reader->draw(ofRectangle(width * .5f + marge, marge, width * .5f - 2.f * marge, height - 2.f * marge), &font);
     for (int i = widgets.size() - 1; i > -1; i--) widgets[i]->draw();
 }
 

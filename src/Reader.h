@@ -9,9 +9,9 @@
 #ifndef DrawScore_Reader_h
 #define DrawScore_Reader_h
 
-#include "ofxUI.h"
 #include "ImgProcess.h"
 #include "Regulator.h"
+#include "ofMain.h"
 
 using namespace ImgProcess;
 
@@ -28,7 +28,7 @@ public:
     
     void setup(int num);
     FrameStatus update();
-    void draw();
+    void draw(ofRectangle bounds, ofTrueTypeFont * font);
     void getTriggers(vector<int> &v);
 
     ~Reader();

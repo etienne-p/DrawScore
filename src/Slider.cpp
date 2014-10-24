@@ -24,6 +24,7 @@ Slider::Slider(int id_, WidgetObserver * observer_, string label_, ofTrueTypeFon
 }
 
 void Slider::draw(){
+    ofFill();
     ofSetColor(ofColor::gray);
     ofPushMatrix();
     ofTranslate(position);

@@ -57,6 +57,7 @@ public:
     void parameterChanged(int id, float value);
     void parameterChanged(int id, bool value);
     vector<Widget*> widgets;
+    float width, height;
     
     ofTrueTypeFont font;
 };

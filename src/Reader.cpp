@@ -167,44 +167,66 @@ FrameStatus Reader::update(){
 }
 
 void Reader::getTriggers(vector<int> &v){
-    //hack, let's consider that top and bottom line are calibration lines
-    triggerWeightThreshold = 1.5 * (0.5 * (triggers.front().weight + triggers.back().weight));
+    // let's consider that top and bottom line are calibration lines
+    triggerWeightThreshold = 1.5f * (.5f * (triggers.front().weight + triggers.back().weight));
     for(int i = 0, len = triggers.size(); i < len; ++i){
         v[i] = triggers[i].weight > triggerWeightThreshold ? 1 : 0;
     }
 }
 
-// used for debugging, Reader won't have a UI in production
-void Reader::draw(){
+void Reader::draw(ofRectangle bounds, ofTrueTypeFont * font){
     
-    // draw source & processed capture
-	ofSetColor(255, 255, 255);
-	int cx = 250;
-	videoTexture.draw(cx,0,cropRect.width,cropRect.height);
-        // draw histogram
+	// draw image & graph
+    ofSetColor(ofColor::white);
+    ofPushMatrix();
+    ofTranslate(bounds.position);
+    ofScale(bounds.width / (cropRect.width + 255), bounds.height * .5f / cropRect.height);
+    
+	videoTexture.draw(0, 0, cropRect.width,cropRect.height);
+    
     ofNoFill();
-	ofBeginShape();
+    ofSetColor(ofColor::gray);
+    ofBeginShape();
     for(int i = 0, len = (int) cropRect.height; i < len; ++i){
-		ofVertex(cx + hSumValues[i], i);
+		ofVertex(cropRect.width + hSumValues[i], i);
 	}
 	ofEndShape(false);
     
-    // draw triggers
-    ofSetColor(0, 255, 0);
-    ofFill();
+    ofSetColor(ofColor::white);
     for(int i = 0, len = triggers.size(); i < len; ++i){
-        ofCircle(cx + 255, cropRect.height * triggers[i].position, triggers[i].weight * cropRect.height);
+        float y = cropRect.height * triggers[i].position;
+        ofNoFill();
+        ofLine(cropRect.width, y, 255, y);
+        ofFill();
+        ofCircle(cropRect.width + 255, y, 4.f);
     }
     
-    // print data
-    ofSetColor(255, 0, 0);
-    cx += cropRect.width;
-    ofDrawBitmapString("size: " + ofToString(triggers.size()), cx, 10);
-    ofDrawBitmapString("output: " + ofToString(regulator.output), cx, 30);
-    ofDrawBitmapString("setPoint: " + ofToString(regulator.setPoint), cx, 50);
-    ofDrawBitmapString("variance: " + ofToString(variance), cx, 70);
-    ofDrawBitmapString("average weight: " + ofToString(averageWeight), cx, 90);
-    ofDrawBitmapString("error: " + error, cx, 110);
+    ofPopMatrix();
+    
+    // text info
+    ofSetColor(ofColor::gray);
+    ofPushMatrix();
+    ofTranslate(bounds.x, bounds.y + .5f * bounds.height);
+    
+    string info[12] = {
+        "size:", ofToString(triggers.size()),
+        "output:", ofToString(regulator.output),
+        "setPoint:", ofToString(regulator.setPoint),
+        "variance:", ofToString(variance),
+        "average weight:", ofToString(averageWeight),
+        error, ""
+    };
+    
+    ofNoFill();
+    for (int i = 0; i < 6; i++){
+        float y = (1 + 2 * i) * font->getLineHeight();
+        font->drawString(info[2 * i], 0, y);
+        font->drawString(info[2 * i + 1], bounds.width - font->getStringBoundingBox(info[2 * i + 1], 0.f, 0.f).width, y);
+        y += font->getLineHeight() * .4f;
+        ofLine(0, y, bounds.width, y);
+    }
+    
+    ofPopMatrix();
 }
 
 Reader::~Reader(){

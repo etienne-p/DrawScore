@@ -17,7 +17,6 @@ Synth::Synth(){
 }
 
 void Synth::processAudio(float * output, int bufferSize){
-    
     for (int i = 0; i < bufferSize; ++i){
         phase += frequency * TWOPI_BY_SAMPLERATE;
 		if (phase >= TWOPI) phase -= TWOPI;
