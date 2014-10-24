@@ -2,22 +2,20 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    // the number of libpd ticks per buffer,
-	// used to compute the audio buffer len: tpb * blocksize (always 64)
-    #ifdef TARGET_LINUX_ARM
-    // longer latency for Raspberry PI
-    int ticksPerBuffer = 32; // 32 * 64 = buffer len of 2048
-    int numInputs = 0; // no built in mic
-    #else
-    int ticksPerBuffer = 8; // 8 * 64 = buffer len of 512
-    int numInputs = 1;
-    #endif
+    
+    //#ifdef TARGET_LINUX_ARM
+   
+    //#else
+    
+    //#endif
+    
+    int samplerate = 44100;
     
 	// setup OF sound stream
-	ofSoundStreamSetup(2, numInputs, this, 44100, ofxPd::blockSize()*ticksPerBuffer, 3);
+	ofSoundStreamSetup(2, 0, this, samplerate, 1024, 3);
     
 	// setup the app core
-	core.setup(2, numInputs, 44100, ticksPerBuffer);
+	core.setup(samplerate);
     core.resize(ofGetWidth(), ofGetHeight());
 }
 

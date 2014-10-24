@@ -19,27 +19,21 @@
 #define P_VOLUME 7
 
 //--------------------------------------------------------------
-void AppCore::setup(const int numOutChannels, const int numInChannels,
-                    const int sampleRate, const int ticksPerBuffer) {
+void AppCore::setup(const int sampleRate) {
     
 	numLines = 7;
     toggleFrame = 1;
-    invalidFramesCount = 0;
     
-    // we store the 2 latest frames, reusing the same vectors
-    while (triggers.size() < 2) triggers.push_back(vector<int>());
-    
-	reader = new Reader();
+    reader = new Reader();
     reader->setup(numLines);
     
-    volume = 0.5f;
+    volume = 0.f; // preserve your ears ;)
     
     rootNote = 48; // C3
     mood = MAJOR;
     
     // setup gui
     ofTrueTypeFont::setGlobalDpi(72);
-    //font.loadFont("fonts/verdana.ttf", 12);
     int eventPriority = 0;
     
     CheckBox * wRegulation = new CheckBox(P_REGULATION, this, "Regulation", &font, eventPriority);
@@ -78,13 +72,6 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
     
     for (int i = widgets.size() - 1; i > -1; i--) widgets[i]->setActive(true);
     
-    // TODO: nicer exit
-	if(!pd.init(numOutChannels, numInChannels, sampleRate, ticksPerBuffer)) OF_EXIT_APP(1);
-    
-	pd.addReceiver(*this);   // automatically receives from all subscribed sources
-    pd.addToSearchPath("pd");
-	pd.start();
-    
     ofSetVerticalSync(true);
     setNumLines(numLines);
 }
@@ -92,29 +79,15 @@ void AppCore::setup(const int numOutChannels, const int numInChannels,
 //--------------------------------------------------------------
 void AppCore::update() {
     
-    
-    bool frameValid = (reader->update() == VALID);
-    
-    if (!frameValid && ++invalidFramesCount < 4) return;
-    
-    // detect changes
-    toggleFrame *= -1;
-    int prev = toggleFrame > 0 ? 0 : 1;
-    int cur = toggleFrame > 0 ? 1 : 0;
-    
-    if (frameValid){
-        invalidFramesCount = 0;
-        reader->getTriggers(triggers[cur]);
+    if (reader->update() == VALID){
+        reader->getTriggers(triggers);
     } else {
-        for (int i = 0; i < numLines; ++i) triggers[cur][i] = -1;
+        for (int i = 0; i < numLines; ++i) triggers[i] = -1;
     }
     
-    // update patches if the frame is valid, or if we are having a serie of invalid frames
-    // so we avoid audio glitches in case of isolated invalid frames
     for (int i = 0; i < numLines; ++i){
-        if (triggers[cur][i] != triggers[prev][i]){
-            pd.sendSymbol(instances[i].dollarZeroStr()+"-instance", triggers[cur][i] > 0 ? "on" : "off");
-        }
+        float mul = ((triggers[i] > 0 ? 1.f : -1.f) * .05f + 1.f) * synths[i]->mul;
+        synths[i]->mul = MIN(1.f, mul);
     }
 }
 
@@ -127,7 +100,6 @@ void AppCore::resize(float width_, float height_) {
     float uiHeight = 0.f;
     
     font.loadFont("fonts/verdana.ttf", (int) floorf(MAX(10.f, radius)));
-    //font.setLineHeight(radius);
     
     // set checkboxes radius
     CheckBox * cb = NULL;
@@ -172,9 +144,7 @@ void AppCore::draw() {
 //--------------------------------------------------------------
 void AppCore::exit() {
     
-    // close PD patches
-	for(int i = 0; i < instances.size(); ++i) pd.closePatch(instances[i]);
-	instances.clear();
+    // TODO: destroy synths, ui
 }
 
 //--------------------------------------------------------------
@@ -182,19 +152,19 @@ void AppCore::setNumLines(int arg){
     
     numLines = arg;
     reader->numLines = numLines;
-    for (int i = 0; i < 2; ++i) triggers[i].resize(numLines, 0);
+    triggers.resize(numLines, 0);
     
     // create / delete voices as needed
-    if (numLines < instances.size()){
-        while (instances.size()  > numLines){
-            pd.closePatch(instances.back());
-            instances.pop_back();
+    if (numLines < synths.size()){
+        while (synths.size()  > numLines){
+            Synth * st = synths.back();
+            synths.pop_back();
+            delete st;
         }
     } else {
         // open one patch per line / voice
-        for(int i = instances.size(); i < numLines; ++i) {
-            Patch p = pd.openPatch("pd/toggle_tone.pd");
-            instances.push_back(p);
+        for(int i = synths.size(); i < numLines; ++i) {
+            synths.push_back(new Synth());
         }
     }
     setNotes(rootNote, mood);
@@ -203,83 +173,43 @@ void AppCore::setNumLines(int arg){
 
 void AppCore::setNotes(int rootNote_, Mood mood_){
     
-    // set midi note for each voice
-    int * notes = getMidiNotes(rootNote_, mood_, instances.size()); // 48 = C3
+    int * notes = getMidiNotes(rootNote_, mood_, synths.size());
     
-    for(int i = 0, len = instances.size(); i < len; ++i) {
-        pd.startMessage();
-        pd.addSymbol("note");
-        pd.addFloat((float) notes[i]);
-        pd.finishList(instances[i].dollarZeroStr()+"-instance");
+    for(int i = 0, len = synths.size(); i < len; ++i) {
+        synths[i]->frequency = MusicUtils::midiToFrequency(notes[i]);
 	}
     
-    delete[] notes; // necessary?
-    
+    delete[] notes;
 }
 
 void AppCore::setVolume(float value){
-    for(int i = 0, len = instances.size(); i < len; ++i) {
-        pd.startMessage();
-        pd.addSymbol("volume");
-        pd.addFloat(volume);
-        pd.finishList(instances[i].dollarZeroStr()+"-instance");
+    for(int i = 0, len = synths.size(); i < len; ++i) {
+        synths[i]->volume = value; // TODO: scale depending on synth count & freqs?
 	}
 }
 
 //--------------------------------------------------------------
 void AppCore::audioReceived(float * input, int bufferSize, int nChannels) {
-	pd.audioIn(input, bufferSize, nChannels);
+	
 }
 
 //--------------------------------------------------------------
 void AppCore::audioRequested(float * output, int bufferSize, int nChannels) {
-	pd.audioOut(output, bufferSize, nChannels);
-}
-
-//--------------------------------------------------------------
-void AppCore::receiveBang(const std::string& dest) {
-	cout << "OF: bang " << dest << endl;
-}
-
-void AppCore::receiveFloat(const std::string& dest, float value) {
-	cout << "OF: float " << dest << ": " << value << endl;
-}
-
-void AppCore::receiveSymbol(const std::string& dest, const std::string& symbol) {
-	cout << "OF: symbol " << dest << ": " << symbol << endl;
-}
-
-void AppCore::receiveList(const std::string& dest, const List& list) {
-	cout << "OF: list " << dest << ": ";
+	
+    vector<float> buf(bufferSize, 0.0);
     
-	// step through the list
-	for(int i = 0; i < list.len(); ++i) {
-		if(list.isFloat(i))
-			cout << list.getFloat(i) << " ";
-		else if(list.isSymbol(i))
-			cout << list.getSymbol(i) << " ";
+    for(int i = synths.size() - 1; i > -1; i--) {
+        synths[i]->processAudio(&buf[0], bufferSize);
 	}
     
-	// you can also use the built in toString function or simply stream it out
-	// cout << list.toString();
-	// cout << list;
-    
-	// print an OSC-style type string
-	cout << list.types() << endl;
-}
-
-void AppCore::receiveMessage(const std::string& dest, const std::string& msg, const List& list) {
-	cout << "OF: message " << dest << ": " << msg << " " << list.toString() << list.types() << endl;
-}
-
-//--------------------------------------------------------------
-void AppCore::print(const std::string& message) {
-	cout << message << endl;
+    for (int i = 0; i < bufferSize; ++i){
+		output[i * nChannels] = output[i * nChannels + 1] = buf[i]; // assuming 2 channels
+	}
 }
 
 //--------------------------------------------------------------
 void AppCore::parameterChanged(int id, float value) {
-    cout << "slider id: " << ofToString(id) << " value: " << ofToString(value) << endl;
+    // cout << "slider id: " << ofToString(id) << " value: " << ofToString(value) << endl;
     switch (id) {
         case P_TRIGGER_THRESHOLD:
             reader->triggerThreshold = value;
@@ -307,7 +237,7 @@ void AppCore::parameterChanged(int id, float value) {
 
 //--------------------------------------------------------------
 void AppCore::parameterChanged(int id, bool value) {
-    cout << "checkbox id: " << ofToString(id) << " value: " << ofToString(value) << endl;
+    // cout << "checkbox id: " << ofToString(id) << " value: " << ofToString(value) << endl;
     switch (id) {
         case P_REGULATION:
             reader->regulationActive = value;

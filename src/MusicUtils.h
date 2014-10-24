@@ -10,6 +10,7 @@
 #define __DrawScore__MusicUtils__
 
 #include <vector>
+#include <math.h> 
 
 using namespace std;
 
@@ -18,6 +19,8 @@ namespace MusicUtils {
     enum Mood { MINOR, MAJOR };
     
     int * getMidiNotes(int rootNote, Mood mood, int count);
+    
+    float midiToFrequency(int midiNote);
 
 };
 
