@@ -28,6 +28,7 @@ public:
     
     void setCursorRadius(float radius_);
     float getCursorRadius();
+    float radiusTouchFactor;
         
     void setValue(float value_);
     float getValue();

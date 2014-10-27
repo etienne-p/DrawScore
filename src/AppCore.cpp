@@ -102,12 +102,12 @@ void AppCore::resize(float width_, float height_) {
     height = height_;
     
     float uiWidth = width_ * .5f;
-    float radius = MIN((height_ / widgets.size()) * .2f, 20.f);
-    float space = radius * .5f;
+    float radius = (height_ / widgets.size()) * .3f;
+    float space = radius * .2f;
     float slWidth = uiWidth * .8f;
     float uiHeight = 0.f;
     
-    font.loadFont("fonts/verdana.ttf", (int) floorf(MAX(10.f, radius)));
+    font.loadFont("fonts/verdana.ttf", (int) floorf(MAX(10.f, radius * .7f)));
     
     // set checkboxes radius
     CheckBox * cb = NULL;

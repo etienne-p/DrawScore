@@ -14,6 +14,7 @@ CheckBox::CheckBox(int id_, WidgetObserver * observer_, string label_, ofTrueTyp
     font = font_;
     eventPriority = eventPriority_;
     radius = 0.f;
+    radiusTouchFactor = 1.8f;
 }
 
 CheckBox::~CheckBox(){
@@ -42,7 +43,7 @@ void CheckBox::setActive(bool active_){
 }
 
 bool CheckBox::touchDownHandler(ofTouchEventArgs &touch){
-    if (ofVec2f(radius, radius).distance(globalToLocal(touch.x, touch.y)) < radius){
+    if (ofVec2f(radius, radius).distance(globalToLocal(touch.x, touch.y)) < radius * radiusTouchFactor){
         checked = !checked;
         observer->parameterChanged(id, checked);
         return true;

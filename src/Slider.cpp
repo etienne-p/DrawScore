@@ -20,6 +20,7 @@ Slider::Slider(int id_, WidgetObserver * observer_, string label_, ofTrueTypeFon
     cursorRadius = .0f;
     currentTouchId = -1;
     step = -1.f;
+    radiusTouchFactor = 1.8f;
     setValue(0);
 }
 
@@ -66,7 +67,7 @@ void Slider::setActive(bool active_){
 }
 
 bool Slider::touchDownHandler(ofTouchEventArgs &touch){
-    if (cursorPosition.distance(globalToLocal(touch.x, touch.y)) < cursorRadius){
+    if (cursorPosition.distance(globalToLocal(touch.x, touch.y)) < cursorRadius * radiusTouchFactor){
         currentTouchId = touch.id;
         return true;
     }
@@ -112,6 +113,7 @@ float Slider::getValue(){
 
 void Slider::setWidth(float width_){
     width = width_;
+    setValue(value);
 }
 
 float Slider::getWidth(){

@@ -23,7 +23,7 @@ public:
     float getWidth();
     float getHeight();
     
-    float radius;
+    float radius, radiusTouchFactor;
     
     bool checked;
     

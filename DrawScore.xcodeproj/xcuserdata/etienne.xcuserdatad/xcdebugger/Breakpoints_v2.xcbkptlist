@@ -31,7 +31,7 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "78"
             endingLineNumber = "78"
-            landmarkName = "AppCore::update()"
+            landmarkName = "AppCore::setup(const int sampleRate)"
             landmarkType = "5">
          </BreakpointContent>
       </BreakpointProxy>
