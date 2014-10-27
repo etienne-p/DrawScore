@@ -8,137 +8,168 @@
 
 #include "AppCore.h"
 
-//--------------------------------------------------------------
-void AppCore::setup(const int numOutChannels, const int numInChannels,
-                    const int sampleRate, const int ticksPerBuffer) {
-    
-	ofSetOrientation(OF_ORIENTATION_90_LEFT);
+// Parameters IDs
+#define P_REGULATION 0
+#define P_TRIGGER_THRESHOLD 1
+#define P_MAX_VARIANCE 2
+#define P_MAX_AVERAGE_WEIGHT 3
+#define P_NUM_LINES 4
+#define P_ROOT_NOTE 5
+#define P_MAJOR 6
+#define P_VOLUME 7
+#define P_ENVELOPE 8
+#define P_USE_TORCH 9
 
+//--------------------------------------------------------------
+void AppCore::setup(const int sampleRate) {
+    
 	numLines = 7;
     toggleFrame = 1;
-    invalidFramesCount = 0;
     
-    // we store the 2 latest frames, reusing the same vectors
-    while (triggers.size() < 2) triggers.push_back(vector<int>());
-    
-	reader = new Reader();
+    reader = new Reader();
     reader->setup(numLines);
     
-    volume = 0.5f;
-    
+    volume = 0.f; // preserve your ears ;)
+    envelopeFactor = 0.0001f;
     rootNote = 48; // C3
     mood = MAJOR;
     
     // setup gui
-    gui = new ofxUICanvas();
-    gui->setRetinaResolution();
-    gui->setWidth(800);
-    gui->setHeight(ofGetHeight());
-    gui->setFont("GUI/faucet.ttf");                     //This loads a new font and sets the GUI font
-    gui->setFontSize(OFX_UI_FONT_LARGE, 18);            //These call are optional, but if you want to resize the LARGE, MEDIUM, and SMALL fonts, here is how to do it.
-    gui->setFontSize(OFX_UI_FONT_MEDIUM, 14);
-    gui->setFontSize(OFX_UI_FONT_SMALL, 10);            //SUPER IMPORTANT NOTE: CALL THESE FUNTIONS BEFORE ADDING ANY WIDGETS, THIS AFFECTS THE SPACING OF THE GUI
+    ofTrueTypeFont::setGlobalDpi(72);
+    int eventPriority = 0;
+    
+    CheckBox * wRegulation = new CheckBox(P_REGULATION, this, "Regulation", &font, eventPriority);
+    wRegulation->checked = reader->regulationActive;
+    widgets.push_back(wRegulation);
 
-    gui->addToggle("REGULATION", reader->regulationActive);
-    gui->addSlider("TRIGGER_THRESHOLD", 0, 1, reader->triggerThreshold);
-
-    gui->addSlider("MAX_VARIANCE", 0, 0.4, reader->maxVariance);
-    gui->addSlider("MAX_AVERAGE_WEIGHT", 0, 0.2, reader->maxAverageWeight);
-    gui->addIntSlider("NUM_LINES", 3, 12, numLines);
-    gui->addIntSlider("ROOT_NOTE", 10, 80, rootNote);
-    gui->addToggle("MAJOR", mood == MAJOR);
-    gui->addSlider("VOLUME", 0, 1, volume);
-    gui->autoSizeToFitWidgets();
-    //gui->loadSettings("settings.xml");
-    ofAddListener(gui->newGUIEvent, this, &AppCore::guiEvent);
+    CheckBox * wTorch = new CheckBox(P_USE_TORCH, this, "Torch", &font, eventPriority);
+    wTorch->checked = false;
+	widgets.push_back(wTorch);
+   
+    CheckBox * wMood = new CheckBox(P_MAJOR, this, "Major Scale", &font, eventPriority);
+    wMood->checked = mood == MAJOR;
+    widgets.push_back(wMood);
     
-    // TODO: nicer exit
-	if(!pd.init(numOutChannels, numInChannels, sampleRate, ticksPerBuffer)) OF_EXIT_APP(1);
+    Slider * wTriggerThreshold = new Slider(P_TRIGGER_THRESHOLD, this, "Trigger Threshold", &font, 0.f, 1.f, eventPriority);
+    wTriggerThreshold->setValue(reader->triggerThreshold);
+    widgets.push_back(wTriggerThreshold);
     
-	pd.addReceiver(*this);   // automatically receives from all subscribed sources
-    pd.addToSearchPath("pd");
-	pd.start();
+    Slider * wMaxVariance = new Slider(P_MAX_VARIANCE, this, "Max Variance", &font, 0.f, .4f, eventPriority);
+    wMaxVariance->setValue(reader->maxVariance);
+    widgets.push_back(wMaxVariance);
     
-    ofSetVerticalSync(false);
+    Slider * wMaxAverageWeight = new Slider(P_MAX_AVERAGE_WEIGHT, this, "Max Average Weight", &font, 0.f, .2f, eventPriority);
+    wMaxAverageWeight->setValue(reader->maxAverageWeight);
+    widgets.push_back(wMaxAverageWeight);
+    
+    Slider * wNumLines = new Slider(P_NUM_LINES, this, "Num Lines", &font, 3, 12, eventPriority);
+    wNumLines->setStep(1.f);
+    wNumLines->setValue(numLines);
+    widgets.push_back(wNumLines);
+    
+    Slider * wRootNote = new Slider(P_ROOT_NOTE, this, "Root Note", &font, 10, 80, eventPriority);
+    wRootNote->setStep(1.f);
+    wRootNote->setValue(rootNote);
+    widgets.push_back(wRootNote);
+    
+    Slider * wEnvelope = new Slider(P_ENVELOPE, this, "Attack / Release", &font, 0.f, 0.0005f, eventPriority);
+    wEnvelope->setValue(envelopeFactor);
+    widgets.push_back(wEnvelope);
+    
+    Slider * wVolume = new Slider(P_VOLUME, this, "Volume", &font, 0.f, 1.f, eventPriority);
+    wVolume->setValue(volume);
+    widgets.push_back(wVolume);
+    
+    for (int i = widgets.size() - 1; i > -1; i--) widgets[i]->setActive(true);
+    
+    ofSetVerticalSync(true);
     setNumLines(numLines);
 }
 
 //--------------------------------------------------------------
 void AppCore::update() {
     
-    
-    bool frameValid = (reader->update() == VALID);
-    
-    if (!frameValid && ++invalidFramesCount < 4) return;
-    
-    // detect changes
-    toggleFrame *= -1;
-    int prev = toggleFrame > 0 ? 0 : 1;
-    int cur = toggleFrame > 0 ? 1 : 0;
-    
-    if (frameValid){
-        invalidFramesCount = 0;
-        reader->getTriggers(triggers[cur]);
+    if (reader->update() == VALID){
+        reader->getTriggers(triggers);
     } else {
-        for (int i = 0; i < numLines; ++i) triggers[cur][i] = -1;
+        for (int i = 0; i < numLines; i++) triggers[i] = 0;
     }
     
-    // update patches if the frame is valid, or if we are having a serie of invalid frames
-    // so we avoid audio glitches in case of isolated invalid frames
-    for (int i = 0; i < numLines; ++i){
-        if (triggers[cur][i] != triggers[prev][i]){
-            pd.sendSymbol(instances[i].dollarZeroStr()+"-instance", triggers[cur][i] > 0 ? "on" : "off");
-        }
+    for (int i = 0;i < numLines; i++){
+        synths[i]->noteOn(triggers[i]);
     }
 }
 
 //--------------------------------------------------------------
+void AppCore::resize(float width_, float height_) {
+    
+    width = width_;
+    height = height_;
+    
+    float uiWidth = width_ * .5f;
+    float radius = (height_ / widgets.size()) * .3f;
+    float space = radius * .2f;
+    float slWidth = uiWidth * .8f;
+    float uiHeight = 0.f;
+    
+    font.loadFont("fonts/verdana.ttf", (int) floorf(MAX(10.f, radius * .7f)));
+    
+    // set checkboxes radius
+    CheckBox * cb = NULL;
+    cb = (CheckBox *) widgets[0];
+    cb->radius = radius;
+    cb = (CheckBox *) widgets[1];
+    cb->radius = radius;
+    cb = (CheckBox *) widgets[2];
+    cb->radius = radius;
+    uiHeight += cb->getHeight();
+    
+    // set sliders radius
+    for (int i = 3; i < widgets.size(); i++){
+        Slider * sl = (Slider*) widgets[i];
+        sl->setCursorRadius(radius);
+        sl->setWidth(slWidth);
+        uiHeight += sl->getHeight();
+    }
+    
+    uiHeight += (widgets.size() - 2) * space;
+    
+    ofVec2f wPos((uiWidth - slWidth) * .5f, (height_ - uiHeight) * .5f);
+    
+    // place check boxes
+    cb = (CheckBox *) widgets[0];
+    cb->position.set(wPos);
+    cb = (CheckBox *) widgets[1];
+    cb->position.set(wPos + ofVec2f(slWidth * 1.f / 3.f, 0));
+    cb = (CheckBox *) widgets[2];
+    cb->position.set(wPos + ofVec2f(slWidth * 2.f / 3.f, 0));
+    wPos.y += cb->getHeight() + space;
+    
+    // place sliders
+    for (int i = 3; i < widgets.size(); i++){
+        Slider * sl = (Slider*) widgets[i];
+        sl->position.set(wPos);
+        wPos.y += sl->getHeight() + space;
+    }}
+
+//--------------------------------------------------------------
 void AppCore::draw() {
-    reader->draw(840, 20);
+    float marge = width * .05f;
+    reader->draw(ofRectangle(width * .5f + marge, marge, width * .5f - 2.f * marge, height - 2.f * marge), &font);
+    for (int i = widgets.size() - 1; i > -1; i--) widgets[i]->draw();
 }
 
 //--------------------------------------------------------------
 void AppCore::exit() {
     
-    // close PD patches
-	for(int i = 0; i < instances.size(); ++i) pd.closePatch(instances[i]);
-	instances.clear();
-    
-    // save & destroy GUI
-    //gui->saveSettings("settings.xml");
-    delete gui;
+    // TODO: destroy synths, ui
 }
 
 //--------------------------------------------------------------
-void AppCore::guiEvent(ofxUIEventArgs &e) {
-    if(e.getName() == "REGULATION") {
-        ofxUIToggle *toggle = e.getToggle();
-        reader->regulationActive = toggle->getValue();
-    } else if (e.getName() == "TRIGGER_THRESHOLD"){
-        ofxUISlider *slider = e.getSlider();
-        reader->triggerThreshold = slider->getScaledValue();
-    } else if (e.getName() == "MAX_VARIANCE"){
-        ofxUISlider *slider = e.getSlider();
-        reader->maxVariance = slider->getScaledValue();
-    } else if (e.getName() == "MAX_AVERAGE_WEIGHT"){
-        ofxUISlider *slider = e.getSlider();
-        reader->maxAverageWeight = slider->getScaledValue();
-    }  else if (e.getName() == "NUM_LINES"){
-        ofxUIIntSlider *slider = (ofxUIIntSlider *) e.getSlider();
-        numLines = slider->getValue();
-        setNumLines(numLines);
-    } else if (e.getName() == "ROOT_NOTE"){
-        ofxUIIntSlider *slider = (ofxUIIntSlider *) e.getSlider();
-        rootNote = slider->getValue();
-        setNotes(rootNote, mood);
-    } else if(e.getName() == "MAJOR") {
-        ofxUIToggle *toggle = e.getToggle();
-        mood = (bool) toggle->getValue() ? MAJOR : MINOR;
-        setNotes(rootNote, mood);
-    } else if (e.getName() == "VOLUME"){
-        ofxUISlider *slider = e.getSlider();
-        volume = slider->getScaledValue();
-        setVolume(volume);
+void AppCore::setEnvelopeFactor(float value_){
+    envelopeFactor = value_;
+    for(int i = synths.size() - 1; i > -1; i--) {
+        synths[i]->mulInterpolation = envelopeFactor;
     }
 }
 
@@ -147,97 +178,110 @@ void AppCore::setNumLines(int arg){
     
     numLines = arg;
     reader->numLines = numLines;
-    for (int i = 0; i < 2; ++i) triggers[i].resize(numLines, 0);
+    triggers.resize(numLines, 0);
     
     // create / delete voices as needed
-    if (numLines < instances.size()){
-        while (instances.size()  > numLines){
-            pd.closePatch(instances.back());
-            instances.pop_back();
+    if (numLines < synths.size()){
+        while (synths.size()  > numLines){
+            Synth * st = synths.back();
+            synths.pop_back();
+            delete st;
         }
     } else {
         // open one patch per line / voice
-        for(int i = instances.size(); i < numLines; ++i) {
-            Patch p = pd.openPatch("pd/toggle_tone.pd");
-            instances.push_back(p);
+        for(int i = synths.size(); i < numLines; ++i) {
+            synths.push_back(new Synth());
         }
     }
     setNotes(rootNote, mood);
     setVolume(volume);
+    setEnvelopeFactor(envelopeFactor);
 }
 
 void AppCore::setNotes(int rootNote_, Mood mood_){
     
-    // set midi note for each voice
-    int * notes = getMidiNotes(rootNote_, mood_, instances.size()); // 48 = C3
+    int * notes = getMidiNotes(rootNote_, mood_, synths.size());
     
-    for(int i = 0, len = instances.size(); i < len; ++i) {
-        pd.startMessage();
-        pd.addSymbol("note");
-        pd.addFloat((float) notes[i]);
-        pd.finishList(instances[i].dollarZeroStr()+"-instance");
+    for(int i = 0, len = synths.size(); i < len; ++i) {
+        synths[i]->frequency = MusicUtils::midiToFrequency(notes[i]);
 	}
     
-    delete[] notes; // necessary? maybe a vector would be better
-    
+    delete[] notes;
 }
 
 void AppCore::setVolume(float value){
-    for(int i = 0, len = instances.size(); i < len; ++i) {
-        pd.startMessage();
-        pd.addSymbol("volume");
-        pd.addFloat(volume);
-        pd.finishList(instances[i].dollarZeroStr()+"-instance");
+    for(int i = 0, len = synths.size(); i < len; ++i) {
+        synths[i]->volume = value; // TODO: scale depending on synth count & freqs?
 	}
 }
 
 //--------------------------------------------------------------
 void AppCore::audioReceived(float * input, int bufferSize, int nChannels) {
-	pd.audioIn(input, bufferSize, nChannels);
+	
 }
 
 //--------------------------------------------------------------
 void AppCore::audioRequested(float * output, int bufferSize, int nChannels) {
-	pd.audioOut(output, bufferSize, nChannels);
-}
-
-//--------------------------------------------------------------
-void AppCore::receiveBang(const std::string& dest) {
-	cout << "OF: bang " << dest << endl;
-}
-
-void AppCore::receiveFloat(const std::string& dest, float value) {
-	cout << "OF: float " << dest << ": " << value << endl;
-}
-
-void AppCore::receiveSymbol(const std::string& dest, const std::string& symbol) {
-	cout << "OF: symbol " << dest << ": " << symbol << endl;
-}
-
-void AppCore::receiveList(const std::string& dest, const List& list) {
-	cout << "OF: list " << dest << ": ";
+	
+    vector<float> buf(bufferSize, 0.0);
     
-	// step through the list
-	for(int i = 0; i < list.len(); ++i) {
-		if(list.isFloat(i))
-			cout << list.getFloat(i) << " ";
-		else if(list.isSymbol(i))
-			cout << list.getSymbol(i) << " ";
+    for(int i = synths.size() - 1; i > -1; i--) {
+        synths[i]->processAudio(&buf[0], bufferSize);
 	}
     
-	// you can also use the built in toString function or simply stream it out
-	// cout << list.toString();
-	// cout << list;
-    
-	// print an OSC-style type string
-	cout << list.types() << endl;
-}
-
-void AppCore::receiveMessage(const std::string& dest, const std::string& msg, const List& list) {
-	cout << "OF: message " << dest << ": " << msg << " " << list.toString() << list.types() << endl;
+    for (int i = 0; i < bufferSize; ++i){
+		output[i * nChannels] = output[i * nChannels + 1] = buf[i]; // assuming 2 channels
+	}
 }
 
 //--------------------------------------------------------------
-void AppCore::print(const std::string& message) {
-	cout << message << endl;
+void AppCore::parameterChanged(int id, float value) {
+    // cout << "slider id: " << ofToString(id) << " value: " << ofToString(value) << endl;
+    switch (id) {
+        case P_TRIGGER_THRESHOLD:
+            reader->triggerThreshold = value;
+            break;
+        case P_MAX_VARIANCE:
+            reader->maxVariance = value;
+            break;
+        case P_MAX_AVERAGE_WEIGHT:
+            reader->maxAverageWeight = value;
+            break;
+        case P_NUM_LINES:
+            numLines = (int) value;
+            setNumLines(numLines);
+            break;
+        case P_ROOT_NOTE:
+            rootNote = (int) value;
+            setNotes(rootNote, mood);
+            break;
+        case P_ENVELOPE:
+            setEnvelopeFactor(value);
+            break;
+        case P_VOLUME:
+            volume = value;
+            setVolume(volume);
+            break;
+    }
 }
+
+//--------------------------------------------------------------
+void AppCore::parameterChanged(int id, bool value) {
+    // cout << "checkbox id: " << ofToString(id) << " value: " << ofToString(value) << endl;
+    switch (id) {
+        case P_REGULATION:
+            reader->regulationActive = value;
+            break;
+        case P_MAJOR:
+            mood = value ? MAJOR : MINOR;
+            setNotes(rootNote, mood);
+            break;
+        case P_USE_TORCH:
+        	ofxAndroidVideoGrabber * grabber = (ofxAndroidVideoGrabber *) reader->getGrabber();
+            grabber->setTorchActivated(value);
+            break;
+    }
+}
+
+
+

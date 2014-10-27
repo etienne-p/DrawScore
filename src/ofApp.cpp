@@ -3,14 +3,14 @@
 //--------------------------------------------------------------
 void ofApp::setup(){
 
-	int ticksPerBuffer = 8; // 32 * 64 = buffer len of 2048
-    int numInputs = 0; // no built in mic
+	int samplerate = 44100;
 
 	// setup OF sound stream
-	ofSoundStreamSetup(2, numInputs, this, 44100, ofxPd::blockSize()*ticksPerBuffer, 4);
+	ofSoundStreamSetup(2, 0, this, samplerate, 1024, 3);
 
 	// setup the app core
-	core.setup(2, numInputs, 44100, ticksPerBuffer);
+	core.setup(samplerate);
+	core.resize(ofGetWidth(), ofGetHeight());
 }
 
 //--------------------------------------------------------------

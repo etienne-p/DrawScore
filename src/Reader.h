@@ -9,9 +9,9 @@
 #ifndef DrawScore_Reader_h
 #define DrawScore_Reader_h
 
-#include "ofxUI.h"
 #include "ImgProcess.h"
 #include "Regulator.h"
+#include "ofMain.h"
 
 using namespace ImgProcess;
 
@@ -28,8 +28,9 @@ public:
     
     void setup(int num);
     FrameStatus update();
-    void draw(int x, int y);
+    void draw(ofRectangle bounds, ofTrueTypeFont * font);
     void getTriggers(vector<int> &v);
+    ofVideoGrabber * getGrabber();
 
     ~Reader();
     
@@ -46,8 +47,8 @@ private:
     string error;
     
     // cam capture
-    ofVideoGrabber vidGrabber;
-    ofTexture videoTexture;
+    ofVideoGrabber * vidGrabber;
+    ofTexture * videoTexture;
     ofRectangle cropRect;
     int camWidth;
     int camHeight;

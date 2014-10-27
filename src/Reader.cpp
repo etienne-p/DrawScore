@@ -7,25 +7,9 @@
 //
 
 #include "Reader.h"
-#include "ofxAndroidVideoGrabber.h"
 
 void Reader::setup(int num){
     
-    numLines = num;
-    
-    error = "default";
-    
-    camWidth = 320;	// try to grab at this size.
-	camHeight = 240;
-    
-    // init zone of interest
-    cropRect.x = (camWidth - 12) / 2;
-    cropRect.y = 0;
-    cropRect.width = 12;
-    cropRect.height = camHeight;
-    hSumValues = new float[(int) cropRect.height];
-    
-    // init regulator
     regulator.output = 128;
     regulator.minOutput = 0;
     regulator.maxOutput = 255;
@@ -34,36 +18,47 @@ void Reader::setup(int num){
     regulator.error = 0;
     regulationActive = true;
     
+    numLines = num;
+    error = "";
     triggerThreshold = 0.5;
-    
     maxVariance = 0.05;
-    
     maxAverageWeight = 0.05;
-    
     triggerWeightThreshold = 0;
     
-    // DEBUG: removed device selection
-
     // select device
-	/*vector<ofVideoDevice> devices = vidGrabber.listDevices();
+    /*
+	vector<ofVideoDevice> devices = vidGrabber.listDevices();
     for(int i = 0; i < devices.size(); i++){
 		cout << devices[i].id << ": " << devices[i].deviceName;
         if( devices[i].bAvailable ) cout << endl;
         else cout << " - unavailable " << endl;
-	}*/
+	}
+     */
     
     // TODO: select back camera
-	//vidGrabber.setDeviceID(0);
-	//vidGrabber.setDesiredFrameRate(60);
-	vidGrabber.initGrabber(camWidth,camHeight);
-    videoTexture.allocate(cropRect.width,cropRect.height, GL_RGB);
+    vidGrabber = new ofVideoGrabber();
+    vidGrabber->setVerbose(true);
+	vidGrabber->setDeviceID(0);
+	vidGrabber->setDesiredFrameRate(60);
+	vidGrabber->initGrabber(640,480);
+
+    camWidth = vidGrabber->width;	// try to grab at this size.
+	camHeight = vidGrabber->height;
+    
+    cropRect.x = (camWidth - 12) / 2;
+    cropRect.y = 0;
+    cropRect.width = 12;
+    cropRect.height = camHeight;
+    hSumValues = new float[(int) cropRect.height];
+    videoTexture = new ofTexture();
+    videoTexture->allocate(cropRect.width,cropRect.height, GL_RGB);
 }
 
 FrameStatus Reader::update(){
     
-    vidGrabber.update();
+    vidGrabber->update();
     
-	if (!vidGrabber.isFrameNew()) return NONE;
+	if (!vidGrabber->isFrameNew()) return NONE;
     
     // we assume the frame is valid
     // we will perform a serie of test on it,
@@ -74,12 +69,12 @@ FrameStatus Reader::update(){
     float regulationValue = 1;
     
     // image processing
-    unsigned char * pixels = vidGrabber.getPixels();
+    unsigned char * pixels = vidGrabber->getPixels();
     unsigned char * cropped = crop(pixels, camWidth ,camHeight, cropRect.x, cropRect.y, cropRect.width, cropRect.height);
     unsigned char * gray = grayScale(cropped, cropRect.width, cropRect.height); // we switch to a 1 channel image
     unsigned char * thresholded = threshold(gray, cropRect.width, cropRect.height, regulator.output);
     unsigned char * expanded = oneToThreeChannels(thresholded, cropRect.width, cropRect.height); // and back to a 3 channels image
-    videoTexture.loadData(expanded, cropRect.width, cropRect.height, GL_RGB);
+    videoTexture->loadData(expanded, cropRect.width, cropRect.height, GL_RGB);
     yAxisHistogram(thresholded, hSumValues, cropRect.width, cropRect.height); // sum values horizontaly
     
     // clean
@@ -170,46 +165,75 @@ FrameStatus Reader::update(){
 }
 
 void Reader::getTriggers(vector<int> &v){
-    //hack, let's consider that top and bottom line are calibration lines
-    triggerWeightThreshold = 1.5 * (0.5 * (triggers.front().weight + triggers.back().weight));
+    // let's consider that top and bottom line are calibration lines
+    triggerWeightThreshold = 1.5f * (.5f * (triggers.front().weight + triggers.back().weight));
     for(int i = 0, len = triggers.size(); i < len; ++i){
         v[i] = triggers[i].weight > triggerWeightThreshold ? 1 : 0;
     }
 }
 
-// used for debugging, Reader won't have a UI in production
-void Reader::draw(int x, int y){
+void Reader::draw(ofRectangle bounds, ofTrueTypeFont * font){
     
-    // draw source & processed capture
-	ofSetColor(255, 255, 255);
-	int cx = x;
-	videoTexture.draw(cx, y, cropRect.width, cropRect.height);
-        // draw histogram
+	// draw image & graph
+    ofSetColor(ofColor::white);
+    ofPushMatrix();
+    ofTranslate(bounds.position);
+    ofScale(bounds.width / (cropRect.width + 255), bounds.height * .5f / cropRect.height);
+    
+	videoTexture->draw(0, 0, cropRect.width,cropRect.height);
+    
     ofNoFill();
-	ofBeginShape();
+    ofSetColor(ofColor::gray);
+    ofBeginShape();
     for(int i = 0, len = (int) cropRect.height; i < len; ++i){
-		ofVertex(cx + hSumValues[i], y + i);
+		ofVertex(cropRect.width + hSumValues[i], i);
 	}
 	ofEndShape(false);
     
-    // draw triggers
-    ofSetColor(0, 255, 0);
-    ofFill();
+    ofSetColor(ofColor::white);
+    float rectSide = 8.f;
     for(int i = 0, len = triggers.size(); i < len; ++i){
-        ofCircle(cx + 255, y + cropRect.height * triggers[i].position, triggers[i].weight * cropRect.height);
+        float y = cropRect.height * triggers[i].position;
+        ofNoFill();
+        ofLine(cropRect.width, y, 255, y);
+        ofFill();
+        ofRect(cropRect.width + 255 - rectSide, y - rectSide * .5f, rectSide, rectSide);
     }
     
-    // print data
-    ofSetColor(255, 0, 0);
-    cx += cropRect.width;
-    ofDrawBitmapString("size: " + ofToString(triggers.size()), cx, y + 10);
-    ofDrawBitmapString("output: " + ofToString(regulator.output), cx, y + 30);
-    ofDrawBitmapString("setPoint: " + ofToString(regulator.setPoint), cx, y + 50);
-    ofDrawBitmapString("variance: " + ofToString(variance), cx, y + 70);
-    ofDrawBitmapString("average weight: " + ofToString(averageWeight), cx, y + 90);
-    ofDrawBitmapString("error: " + error, cx, y + 110);
+    ofPopMatrix();
+    
+    // text info
+    ofSetColor(ofColor::gray);
+    ofPushMatrix();
+    ofTranslate(bounds.x, bounds.y + .5f * bounds.height);
+    
+    string info[12] = {
+        "size:", ofToString(triggers.size()),
+        "output:", ofToString(regulator.output),
+        "setPoint:", ofToString(regulator.setPoint),
+        "variance:", ofToString(variance),
+        "average weight:", ofToString(averageWeight),
+        error, ""
+    };
+    
+    ofNoFill();
+    for (int i = 0; i < 6; i++){
+        float y = (1 + 2 * i) * font->getLineHeight();
+        font->drawString(info[2 * i], 0, y);
+        font->drawString(info[2 * i + 1], bounds.width - font->getStringBoundingBox(info[2 * i + 1], 0.f, 0.f).width, y);
+        y += font->getLineHeight() * .4f;
+        ofLine(0, y, bounds.width, y);
+    }
+    
+    ofPopMatrix();
+}
+
+ofVideoGrabber * Reader::getGrabber(){
+	return vidGrabber;
 }
 
 Reader::~Reader(){
+    delete videoTexture;
+    delete vidGrabber;
     delete[] hSumValues;
 }

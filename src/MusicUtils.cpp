@@ -10,10 +10,10 @@
 
 namespace MusicUtils {
     
+    // http://www.ijpam.eu/contents/2011-67-2/5/5.pdf
+    // http://www.phys.unsw.edu.au/jw/notes.html
     int * getMidiNotes(int rootNote, Mood mood, int count){
     
-        // http://www.ijpam.eu/contents/2011-67-2/5/5.pdf
-        // http://www.phys.unsw.edu.au/jw/notes.html
         int major[7] = { 2, 2, 1, 2, 2, 2, 1 };
         int minor[7] = { 2, 1, 2, 2, 1, 2, 2 };
         int * scale = mood == MAJOR ? major : minor;
@@ -28,6 +28,9 @@ namespace MusicUtils {
         }
         return rv;
     }
-
     
+    // http://newt.phys.unsw.edu.au/jw/notes.html
+    float midiToFrequency(int midiNote){
+        return pow(2.f ,(midiNote - 69.f) / 12.f) * 440.f;
+    }
 }
