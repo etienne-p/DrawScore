@@ -161,8 +161,8 @@ void AppCore::draw() {
 
 //--------------------------------------------------------------
 void AppCore::exit() {
-    
-    // TODO: destroy synths, ui
+	setNumLines(0); // delete synths
+    delete reader;
 }
 
 //--------------------------------------------------------------

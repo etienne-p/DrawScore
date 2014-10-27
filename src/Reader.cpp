@@ -166,7 +166,7 @@ FrameStatus Reader::update(){
 
 void Reader::getTriggers(vector<int> &v){
     // let's consider that top and bottom line are calibration lines
-    triggerWeightThreshold = 1.5f * (.5f * (triggers.front().weight + triggers.back().weight));
+    triggerWeightThreshold = 2.f * (.5f * (triggers.front().weight + triggers.back().weight));
     for(int i = 0, len = triggers.size(); i < len; ++i){
         v[i] = triggers[i].weight > triggerWeightThreshold ? 1 : 0;
     }
