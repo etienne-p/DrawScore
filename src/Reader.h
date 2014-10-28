@@ -30,6 +30,7 @@ public:
     FrameStatus update();
     void draw(ofRectangle bounds, ofTrueTypeFont * font);
     void getTriggers(vector<int> &v);
+    ofVideoGrabber * getGrabber();
 
     ~Reader();
     
@@ -46,8 +47,8 @@ private:
     string error;
     
     // cam capture
-    ofVideoGrabber vidGrabber;
-    ofTexture videoTexture;
+    ofVideoGrabber * vidGrabber;
+    ofTexture * videoTexture;
     ofRectangle cropRect;
     int camWidth;
     int camHeight;

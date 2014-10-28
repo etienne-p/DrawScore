@@ -36,27 +36,29 @@ void Reader::setup(int num){
      */
     
     // TODO: select back camera
-    vidGrabber.setVerbose(true);
-	vidGrabber.setDeviceID(0);
-	vidGrabber.setDesiredFrameRate(60);
-	vidGrabber.initGrabber(640,480);
-    
-    camWidth = vidGrabber.width;	// try to grab at this size.
-	camHeight = vidGrabber.height;
+    vidGrabber = new ofVideoGrabber();
+    vidGrabber->setVerbose(true);
+	vidGrabber->setDeviceID(0);
+	vidGrabber->setDesiredFrameRate(60);
+	vidGrabber->initGrabber(640,480);
+
+    camWidth = vidGrabber->width;	// try to grab at this size.
+	camHeight = vidGrabber->height;
     
     cropRect.x = (camWidth - 12) / 2;
     cropRect.y = 0;
     cropRect.width = 12;
     cropRect.height = camHeight;
     hSumValues = new float[(int) cropRect.height];
-    videoTexture.allocate(cropRect.width,cropRect.height, GL_RGB);
+    videoTexture = new ofTexture();
+    videoTexture->allocate(cropRect.width,cropRect.height, GL_RGB);
 }
 
 FrameStatus Reader::update(){
     
-    vidGrabber.update();
+    vidGrabber->update();
     
-	if (!vidGrabber.isFrameNew()) return NONE;
+	if (!vidGrabber->isFrameNew()) return NONE;
     
     // we assume the frame is valid
     // we will perform a serie of test on it,
@@ -67,12 +69,12 @@ FrameStatus Reader::update(){
     float regulationValue = 1;
     
     // image processing
-    unsigned char * pixels = vidGrabber.getPixels();
+    unsigned char * pixels = vidGrabber->getPixels();
     unsigned char * cropped = crop(pixels, camWidth ,camHeight, cropRect.x, cropRect.y, cropRect.width, cropRect.height);
     unsigned char * gray = grayScale(cropped, cropRect.width, cropRect.height); // we switch to a 1 channel image
     unsigned char * thresholded = threshold(gray, cropRect.width, cropRect.height, regulator.output);
     unsigned char * expanded = oneToThreeChannels(thresholded, cropRect.width, cropRect.height); // and back to a 3 channels image
-    videoTexture.loadData(expanded, cropRect.width, cropRect.height, GL_RGB);
+    videoTexture->loadData(expanded, cropRect.width, cropRect.height, GL_RGB);
     yAxisHistogram(thresholded, hSumValues, cropRect.width, cropRect.height); // sum values horizontaly
     
     // clean
@@ -164,7 +166,7 @@ FrameStatus Reader::update(){
 
 void Reader::getTriggers(vector<int> &v){
     // let's consider that top and bottom line are calibration lines
-    triggerWeightThreshold = 1.5f * (.5f * (triggers.front().weight + triggers.back().weight));
+    triggerWeightThreshold = 2.f * (.5f * (triggers.front().weight + triggers.back().weight));
     for(int i = 0, len = triggers.size(); i < len; ++i){
         v[i] = triggers[i].weight > triggerWeightThreshold ? 1 : 0;
     }
@@ -178,7 +180,7 @@ void Reader::draw(ofRectangle bounds, ofTrueTypeFont * font){
     ofTranslate(bounds.position);
     ofScale(bounds.width / (cropRect.width + 255), bounds.height * .5f / cropRect.height);
     
-	videoTexture.draw(0, 0, cropRect.width,cropRect.height);
+	videoTexture->draw(0, 0, cropRect.width,cropRect.height);
     
     ofNoFill();
     ofSetColor(ofColor::gray);
@@ -226,6 +228,12 @@ void Reader::draw(ofRectangle bounds, ofTrueTypeFont * font){
     ofPopMatrix();
 }
 
+ofVideoGrabber * Reader::getGrabber(){
+	return vidGrabber;
+}
+
 Reader::~Reader(){
+    delete videoTexture;
+    delete vidGrabber;
     delete[] hSumValues;
 }

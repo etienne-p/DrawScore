@@ -18,6 +18,7 @@
 #define P_MAJOR 6
 #define P_VOLUME 7
 #define P_ENVELOPE 8
+#define P_USE_TORCH 9
 
 //--------------------------------------------------------------
 void AppCore::setup(const int sampleRate) {
@@ -40,6 +41,10 @@ void AppCore::setup(const int sampleRate) {
     CheckBox * wRegulation = new CheckBox(P_REGULATION, this, "Regulation", &font, eventPriority);
     wRegulation->checked = reader->regulationActive;
     widgets.push_back(wRegulation);
+
+    CheckBox * wTorch = new CheckBox(P_USE_TORCH, this, "Torch", &font, eventPriority);
+    wTorch->checked = false;
+	widgets.push_back(wTorch);
    
     CheckBox * wMood = new CheckBox(P_MAJOR, this, "Major Scale", &font, eventPriority);
     wMood->checked = mood == MAJOR;
@@ -115,10 +120,12 @@ void AppCore::resize(float width_, float height_) {
     cb->radius = radius;
     cb = (CheckBox *) widgets[1];
     cb->radius = radius;
+    cb = (CheckBox *) widgets[2];
+    cb->radius = radius;
     uiHeight += cb->getHeight();
     
     // set sliders radius
-    for (int i = 2; i < widgets.size(); i++){        
+    for (int i = 3; i < widgets.size(); i++){
         Slider * sl = (Slider*) widgets[i];
         sl->setCursorRadius(radius);
         sl->setWidth(slWidth);
@@ -133,11 +140,13 @@ void AppCore::resize(float width_, float height_) {
     cb = (CheckBox *) widgets[0];
     cb->position.set(wPos);
     cb = (CheckBox *) widgets[1];
-    cb->position.set(wPos + ofVec2f(slWidth * .5f, 0));
+    cb->position.set(wPos + ofVec2f(slWidth * 1.f / 3.f, 0));
+    cb = (CheckBox *) widgets[2];
+    cb->position.set(wPos + ofVec2f(slWidth * 2.f / 3.f, 0));
     wPos.y += cb->getHeight() + space;
     
     // place sliders
-    for (int i = 2; i < widgets.size(); i++){
+    for (int i = 3; i < widgets.size(); i++){
         Slider * sl = (Slider*) widgets[i];
         sl->position.set(wPos);
         wPos.y += sl->getHeight() + space;
@@ -152,8 +161,8 @@ void AppCore::draw() {
 
 //--------------------------------------------------------------
 void AppCore::exit() {
-    
-    // TODO: destroy synths, ui
+	setNumLines(0); // delete synths
+    delete reader;
 }
 
 //--------------------------------------------------------------
@@ -267,6 +276,12 @@ void AppCore::parameterChanged(int id, bool value) {
             mood = value ? MAJOR : MINOR;
             setNotes(rootNote, mood);
             break;
+		#ifdef TARGET_ANDROID
+        case P_USE_TORCH:
+        	ofxAndroidVideoGrabber * grabber = (ofxAndroidVideoGrabber *) reader->getGrabber();
+            grabber->setTorchActivated(value);
+            break;
+		#endif
     }
 }
 
