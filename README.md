@@ -2,7 +2,7 @@
 
 An app that lets users read hand-drawn and musical scores with their mobile device.
 
-There is 2 branches, one for OSX, the other for Android, as developing for oSX in XCode is a lot faster the developing in Eclipse with the Android NDK.
+There is 2 branches, one for OSX, the other for Android, as developing for OSX in XCode is a lot faster the developing in Eclipse with the Android NDK.
 
 The app uses the camera torch on android, so you'll need to patch your ofxAndroid addon:
 
