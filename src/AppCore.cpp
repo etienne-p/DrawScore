@@ -8,7 +8,7 @@
 
 #include "AppCore.h"
 
-// Parameters IDs
+// Parameters ID
 #define P_REGULATION 0
 #define P_TRIGGER_THRESHOLD 1
 #define P_MAX_VARIANCE 2
@@ -276,10 +276,12 @@ void AppCore::parameterChanged(int id, bool value) {
             mood = value ? MAJOR : MINOR;
             setNotes(rootNote, mood);
             break;
+		#ifdef TARGET_ANDROID
         case P_USE_TORCH:
         	ofxAndroidVideoGrabber * grabber = (ofxAndroidVideoGrabber *) reader->getGrabber();
             grabber->setTorchActivated(value);
             break;
+		#endif
     }
 }
 
